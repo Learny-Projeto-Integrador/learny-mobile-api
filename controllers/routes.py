@@ -1,5 +1,6 @@
 from flask import request, jsonify
 from flask_pymongo import PyMongo
+from werkzeug.security import check_password_hash, generate_password_hash
 
 def init_app(app):
 
@@ -25,7 +26,7 @@ def init_app(app):
         user_data = mongo.db.pais.find_one({'usuario': user})
 
         if user_data:
-            if (user_data['senha'] == password):
+            if check_password_hash(user_data['senha'], password):
                 return jsonify({'message': 'Login realizado com sucesso!'})
             else:
                 return jsonify({'error': 'Senha Inválida'}), 401
@@ -39,14 +40,18 @@ def init_app(app):
         if not data or not data.get('user') or not data.get('password') or not data.get('email'):
             return jsonify({'error': 'Preencha todos os campos'}), 400
 
+        image = data['image']
         user = data['user']
-        password = data['password']
+        password = generate_password_hash(data['password'])
         email = data['email']
+        dataNasc = data['dataNasc']
 
         dados = {
+            'foto': image,
             'usuario': user, 
             'senha': password, 
             'email': email, 
+            'dataNasc': dataNasc,
         }
 
         # Buscar usuário no banco
