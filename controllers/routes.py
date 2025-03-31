@@ -37,7 +37,13 @@ def init_app(app):
     def pais():
         data = request.get_json()
 
-        if not data or not data.get('user') or not data.get('password') or not data.get('email'):
+        # Lista de campos obrigatórios
+        required_fields = ['user', 'password', 'email', 'dataNasc']
+        
+        # Verifica se algum campo está ausente ou vazio
+        missing_fields = [field for field in required_fields if not data.get(field)]
+        
+        if missing_fields:
             return jsonify({'error': 'Preencha todos os campos'}), 400
 
         image = data['image']
