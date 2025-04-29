@@ -2,57 +2,70 @@ from api import mongo
 from flask import request, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 from ..models import database
-from bson import ObjectId
+from bson import ObjectId, errors
 
 
-def login_children(children):
-
-    # if not children or not children.get('user') or not children.get('password'):
-    #     return jsonify({'error': 'Usuário e senha são obrigatórios'}), 400
-
-    user = children.usuario
-    password = children.senha
-
+def get_children_by_id(id):
     # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'usuario': user})
+    user_data = mongo.db.criancas.find_one({'_id': id})
 
     if user_data:
-        if check_password_hash(user_data['senha'], password):
-            return jsonify({'message': 'Login realizado com sucesso!'})
-        else:
-            return jsonify({'error': 'Senha Inválida'}), 401
+        return user_data
     else:
-        return jsonify({'error': 'Usuário ou senha inválidos'}), 401
+        return {'error': 'Erro ao buscar os dados da criança'}
 
-def register_chilhen(children):
-    # Lista de campos obrigatórios
-    # required_fields = ['user', 'password', 'email', 'dataNasc']
+def login_children(data):
+    usuario = data.get('usuario')
+    senha = data.get('senha')
 
-    # # Verifica se algum campo está ausente ou vazio
-    # missing_fields = [field for field in required_fields if not children.get(field)]
+    # Buscar usuário no banco
+    user_data = mongo.db.criancas.find_one({'usuario': usuario})
 
-    # if missing_fields:
-    #     return jsonify({'error': 'Preencha todos os campos'}), 400
+    if user_data:
+        if check_password_hash(user_data['senha'], senha):
+            return user_data
+        else:
+            return {'error': 'Senha Inválida'}
+    else:
+        return {'error': 'Usuário ou senha inválidos'}
 
-    # image = children['image']
-    user = children.usuario
-    password = generate_password_hash(children.senha)
-    email = children.email
-    dataNasc = children.dataNasc
+def register_children(data):
+    foto = data.foto
+    usuario = data.usuario
+    nome = data.nome
+    senha = generate_password_hash(data.senha)
+    email = data.email
+    dataNasc = data.dataNasc
+    try:
+        responsavel = ObjectId(data.responsavel)
+    except (errors.InvalidId, TypeError):
+        return {'error': 'ID do responsável inválido.'}
 
     dados = {
-        # 'foto': image,
-        'usuario': user,
-        'senha': password,
+        'foto': foto,
+        'usuario': usuario,
+        'senha': senha,
+        'nome': nome,
         'email': email,
         'dataNasc': dataNasc,
+        'responsavel': responsavel,
     }
 
     # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'usuario': user})
+    user_data = mongo.db.criancas.find_one({'usuario': usuario})
 
     if user_data:
-        return jsonify({'error': 'Usuário já existente'}), 401
+        return {'error': 'Usuário já existente'}
     else:
         user_data = mongo.db.criancas.insert_one(dados)
-        return jsonify({'message': 'Usuário cadastrado com sucesso!'})
+        return {'message': 'Usuário cadastrado com sucesso!'}
+    
+def delete_children(id):
+    # Buscar usuário no banco
+    user_data = mongo.db.criancas.find_one({'_id': id})
+
+    if user_data:
+        mongo.db.criancas.deleteMany({'_id': id})
+        return {'message': 'Conta excluida com sucesso'}
+    else:
+        return {'error': 'Erro ao buscar os dados da criança'}
