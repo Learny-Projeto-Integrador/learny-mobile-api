@@ -19,6 +19,7 @@ if __name__ == "__main__":
                 email = 'admin',
                 dataNasc='01-01-1990',
                 filhos=[],
+                filhoSelecionado={},
             )
             parent_service.register_parent(pai)
         if 'criancas' not in mongo.db.list_collection_names():
@@ -29,7 +30,7 @@ if __name__ == "__main__":
                 foto = '',
                 email = 'joana@gmail.com',
                 dataNasc='01-01-2018',
-                responsavel=[]
+                responsavel=""
             )
             children_service.register_children(crianca)
     app.run(host="localhost", port="5000", debug=True)

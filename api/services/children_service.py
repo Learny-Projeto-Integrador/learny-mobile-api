@@ -36,10 +36,13 @@ def register_children(data):
     senha = generate_password_hash(data.senha)
     email = data.email
     dataNasc = data.dataNasc
-    try:
-        responsavel = ObjectId(data.responsavel)
-    except (errors.InvalidId, TypeError):
-        return {'error': 'ID do responsável inválido.'}
+    responsavel = data.responsavel
+    
+    if responsavel != "":
+        try:
+            responsavel = ObjectId(data.responsavel)
+        except (errors.InvalidId, TypeError):
+            return {'error': 'ID do responsável inválido.'}
 
     dados = {
         'foto': foto,

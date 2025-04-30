@@ -1,7 +1,7 @@
 from api import mongo
 
 class Pais():
-    def __init__(self, foto, usuario, senha, nome, email, dataNasc, filhos):
+    def __init__(self, foto, usuario, senha, nome, email, dataNasc, filhos, filhoSelecionado):
         self.usuario = usuario
         self.senha = senha
         self.nome = nome
@@ -9,6 +9,7 @@ class Pais():
         self.email = email
         self.dataNasc = dataNasc
         self.filhos = filhos
+        self.filhoSelecionado = filhoSelecionado
         
 class Criancas():
     def __init__(self, foto, usuario, nome, senha, email, dataNasc, responsavel):

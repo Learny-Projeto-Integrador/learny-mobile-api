@@ -33,7 +33,7 @@ class ParentResources(Resource):
         email = validated_data["email"]
         dataNasc = validated_data["dataNasc"]
 
-        new_parent = database.Pais(foto=foto, usuario=usuario, senha=senha, nome=nome, email=email, dataNasc=dataNasc, filhos=[])
+        new_parent = database.Pais(foto=foto, usuario=usuario, senha=senha, nome=nome, email=email, dataNasc=dataNasc, filhos=[], filhoSelecionado={})
         result = parent_service.register_parent(new_parent)
 
         if "error" in result:
@@ -83,13 +83,24 @@ class AddChildrenResources(Resource):
         parent_id = get_jwt_identity()
         parent = parent_service.get_parent_by_id(ObjectId(parent_id))
         new_children = request.json
-        print(parent_id)
         if parent is None:
             return make_response(jsonify("Responsável não encontrado."), 404)
         parent_service.add_children(parent_id, new_children)
+        return make_response(jsonify(parent), 200)
+    
+class EditSelectedChildrenResources(Resource):
+    @jwt_required()
+    def put(self):
+        parent_id = get_jwt_identity()
+        parent = parent_service.get_parent_by_id(ObjectId(parent_id))
+        new_children = request.json
+        if parent is None:
+            return make_response(jsonify("Responsável não encontrado."), 404)
+        parent_service.edit_selected_children(parent_id, new_children)
         return make_response(jsonify(parent), 200)
 
       
 api.add_resource(ParentResources, '/pais')
 api.add_resource(ParentLoginResources, '/pais/login')
 api.add_resource(AddChildrenResources, '/pais/addcrianca')
+api.add_resource(EditSelectedChildrenResources, '/pais/filhoselecionado')

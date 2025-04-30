@@ -45,6 +45,7 @@ def register_parent(data):
         'email': email,
         'dataNasc': dataNasc,
         'filhos': [],
+        'filhoSelecionado': {},
     }
 
     # Buscar usuário no banco
@@ -89,12 +90,61 @@ def add_children(id, new_child):
     except Exception:
         return {'error': 'ID inválido'}
 
-    result = mongo.db.pais.update_one(
-        {'_id': obj_id},
-        {'$push': {'filhos': new_child}}
-    )
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
+        return {'error': 'Pai não encontrado'}
 
-    if result.matched_count > 0:
+    if pai.get('filhoSelecionado', None) == {}:
+        # Supondo que new_child contenha um campo "id" que deve virar ObjectId
+        if '_id' in new_child:
+            try:
+                new_child['_id'] = ObjectId(new_child['_id'])
+            except Exception:
+                return {'error': 'ID do filho inválido'}
+            
+        result = mongo.db.pais.update_one(
+            {'_id': obj_id},
+            {
+                '$push': {'filhos': new_child},
+                '$set': {'filhoSelecionado': new_child}
+            }
+        )
+        
+    else:
+        result = mongo.db.pais.update_one(
+            {'_id': obj_id},
+            {'$push': {'filhos': new_child}}
+        )
+
+    if result.modified_count > 0:
         return {'message': 'Filho adicionado com sucesso'}
     else:
+        return {'error': 'Erro ao adicionar filho'}
+    
+def edit_selected_children(id, new_child):
+    try:
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
         return {'error': 'Pai não encontrado'}
+
+    if '_id' in new_child:
+        try:
+            new_child['_id'] = ObjectId(new_child['_id'])
+        except Exception:
+            return {'error': 'ID do filho inválido'}
+            
+    result = mongo.db.pais.update_one(
+        {'_id': obj_id},
+        {
+            '$set': {'filhoSelecionado': new_child}
+        }
+    )
+
+    if result.modified_count > 0:
+        return {'message': 'Filho selecionado alterado com sucesso'}
+    else:
+        return {'error': 'Erro ao alterar o filho selecionado'}
