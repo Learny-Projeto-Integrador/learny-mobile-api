@@ -63,6 +63,12 @@ def edit_parent(id, new_data):
         obj_id = ObjectId(id)
     except Exception:
         return {'error': 'ID inválido'}
+    
+    if new_data.get('senha'):
+        new_data['senha'] = generate_password_hash(new_data['senha'])
+    else:
+        # Se não houver nova senha, remove o campo para manter a antiga
+        new_data.pop('senha', None)
 
     result = mongo.db.pais.update_one(
         {'_id': obj_id},
@@ -79,7 +85,7 @@ def delete_parent(id):
     user_data = mongo.db.pais.find_one({'_id': id})
 
     if user_data:
-        mongo.db.pais.deleteMany({'_id': id})
+        mongo.db.pais.delete_one({'_id': id})
         return {'message': 'Conta excluida com sucesso'}
     else:
         return {'error': 'Erro ao buscar os dados do pai'}

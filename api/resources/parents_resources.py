@@ -48,18 +48,19 @@ class ParentResources(Resource):
         new_data = request.json
         if parent is None:
             return make_response(jsonify("Responsável não encontrado."), 404)
-        parent_service.edit_parent(parent_id, new_data)
-        return make_response(jsonify(parent), 200)
-        
+        result = parent_service.edit_parent(parent_id, new_data)
+        return make_response(jsonify(result), 200)
+    
+class ParentDetailResources(Resource):
     @jwt_required()
-    def delete(self):
-        parent_id = get_jwt_identity()
-        parent = parent_service.get_parent_by_id(ObjectId(parent_id))
+    def delete(self, id):
+        parent = parent_service.get_parent_by_id(ObjectId(id))
+        print(parent)
         if parent is None:
             return make_response(jsonify("Responsável não encontrado."), 404)
         
-        parent_service.delete_parent(id)
-        return make_response(jsonify("Conta excluída com sucesso"), 204)
+        parent_service.delete_parent(ObjectId(id))
+        return make_response(jsonify("Conta excluída com sucesso"), 204)  
 
 class ParentLoginResources(Resource):
     def post(self):
@@ -101,6 +102,7 @@ class EditSelectedChildrenResources(Resource):
 
       
 api.add_resource(ParentResources, '/pais')
+api.add_resource(ParentDetailResources, '/pais/<id>')
 api.add_resource(ParentLoginResources, '/pais/login')
 api.add_resource(AddChildrenResources, '/pais/addcrianca')
 api.add_resource(EditSelectedChildrenResources, '/pais/filhoselecionado')
