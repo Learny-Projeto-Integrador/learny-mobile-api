@@ -14,21 +14,6 @@ def get_children_by_id(id):
     else:
         return {'error': 'Erro ao buscar os dados da criança'}
 
-def login_children(data):
-    usuario = data.get('usuario')
-    senha = data.get('senha')
-
-    # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'usuario': usuario})
-
-    if user_data:
-        if check_password_hash(user_data['senha'], senha):
-            return user_data
-        else:
-            return {'error': 'Senha Inválida'}
-    else:
-        return {'error': 'Usuário ou senha inválidos'}
-
 def register_children(data):
     foto = data.foto
     usuario = data.usuario
@@ -51,17 +36,47 @@ def register_children(data):
         'nome': nome,
         'email': email,
         'dataNasc': dataNasc,
+        'pontos': 0,
+        'fasesConcluidas': 0,
+        'medalhas': [],
+        'rankingAtual': 0,
+        'missoesDiarias': [],
+        'audio': True,
         'responsavel': responsavel,
     }
 
     # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'usuario': usuario})
+    children_data = mongo.db.criancas.find_one({'usuario': usuario})
+    parent_data = mongo.db.pais.find_one({'usuario': usuario})
 
-    if user_data:
+    if children_data or parent_data:
         return {'error': 'Usuário já existente'}
     else:
-        user_data = mongo.db.criancas.insert_one(dados)
+        mongo.db.criancas.insert_one(dados)
         return {'message': 'Usuário cadastrado com sucesso!'}
+    
+def edit_children(id, new_data):
+    try:
+        # Certificar que o ID é do tipo ObjectId
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+    
+    if new_data.get('senha'):
+        new_data['senha'] = generate_password_hash(new_data['senha'])
+    else:
+        # Se não houver nova senha, remove o campo para manter a antiga
+        new_data.pop('senha', None)
+
+    result = mongo.db.criancas.update_one(
+        {'_id': obj_id},
+        {'$set': new_data}
+    )
+
+    if result.matched_count > 0:
+        return {'message': 'Dados atualizados com sucesso'}
+    else:
+        return {'error': 'Pai não encontrado'}
     
 def delete_children(id):
     # Buscar usuário no banco

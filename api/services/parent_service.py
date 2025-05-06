@@ -14,21 +14,6 @@ def get_parent_by_id(id):
     else:
         return {'error': 'Erro ao buscar os dados do pai'}
 
-def login_parent(data):
-    usuario = data.get('usuario')
-    senha = data.get('senha')
-
-    # Buscar usuário no banco
-    user_data = mongo.db.pais.find_one({'usuario': usuario})
-
-    if user_data:
-        if check_password_hash(user_data['senha'], senha):
-            return user_data
-        else:
-            return {'error': 'Senha Inválida'}
-    else:
-        return {'error': 'Usuário ou senha inválidos'}
-
 def register_parent(data):
     foto = data.foto
     usuario = data.usuario
@@ -49,12 +34,13 @@ def register_parent(data):
     }
 
     # Buscar usuário no banco
-    user_data = mongo.db.pais.find_one({'usuario': usuario})
+    parent_data = mongo.db.pais.find_one({'usuario': usuario})
+    children_data = mongo.db.criancas.find_one({'usuario': usuario})
 
-    if user_data:
+    if parent_data or children_data:
         return {'error': 'Usuário já existente'}
     else:
-        user_data = mongo.db.pais.insert_one(dados)
+        mongo.db.pais.insert_one(dados)
         return {'message': 'Usuário cadastrado com sucesso!'}
     
 def edit_parent(id, new_data):
@@ -63,6 +49,13 @@ def edit_parent(id, new_data):
         obj_id = ObjectId(id)
     except Exception:
         return {'error': 'ID inválido'}
+    
+    # Buscar usuário no banco
+    parent_data = mongo.db.pais.find_one({'usuario': new_data['usuario']})
+    children_data = mongo.db.criancas.find_one({'usuario': new_data['usuario']})
+
+    if parent_data or children_data:
+        return {'error': 'Usuário já existente'}
     
     if new_data.get('senha'):
         new_data['senha'] = generate_password_hash(new_data['senha'])

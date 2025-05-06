@@ -1,9 +1,9 @@
 # Importar o Flask do pacote api
 from api import app, mongo
 # Importando a classe Movie que está no Model
-from api.models.database import Pais, Criancas
+from api.models.database import Pais
 # Importando o service
-from api.services import parent_service, children_service
+from api.services import parent_service
 
 # Rodando a aplicação
 if __name__ == "__main__":
@@ -22,15 +22,4 @@ if __name__ == "__main__":
                 filhoSelecionado={},
             )
             parent_service.register_parent(pai)
-        if 'criancas' not in mongo.db.list_collection_names():
-            crianca = Criancas(
-                usuario = 'joana',
-                senha = '123',
-                nome = 'Joana',
-                foto = '',
-                email = 'joana@gmail.com',
-                dataNasc='01-01-2018',
-                responsavel=""
-            )
-            children_service.register_children(crianca)
     app.run(host="localhost", port="5000", debug=True)

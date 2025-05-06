@@ -4,10 +4,10 @@ from flask_restful import Resource
 from marshmallow import ValidationError
 from api import api
 from flask import make_response, jsonify, request
-from ..schemas.parent_schemas import ParentSchema, ParentLoginSchema
+from ..schemas.parent_schemas import ParentSchema
 from ..models import database
 from ..services import parent_service
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity
 
 class ParentResources(Resource):
     @jwt_required()
@@ -61,22 +61,6 @@ class ParentDetailResources(Resource):
         
         parent_service.delete_parent(ObjectId(id))
         return make_response(jsonify("Conta excluída com sucesso"), 204)  
-
-class ParentLoginResources(Resource):
-    def post(self):
-        mv = ParentLoginSchema()
-        try:
-            validated_data = mv.load(request.json)
-        except ValidationError:
-            # Se der erro de validação, responde mensagem única
-            return make_response(jsonify({"error": "Preencha todos os campos obrigatórios."}), 400)
-    
-        result = parent_service.login_parent(validated_data)
-        if "error" in result:
-            return make_response(jsonify({"error": result["error"]}), 400)
-        
-        access_token = create_access_token(identity=str(result["_id"]))
-        return make_response(jsonify(access_token=access_token), 200)
     
 class AddChildrenResources(Resource):
     @jwt_required()
@@ -103,6 +87,5 @@ class EditSelectedChildrenResources(Resource):
       
 api.add_resource(ParentResources, '/pais')
 api.add_resource(ParentDetailResources, '/pais/<id>')
-api.add_resource(ParentLoginResources, '/pais/login')
 api.add_resource(AddChildrenResources, '/pais/addcrianca')
 api.add_resource(EditSelectedChildrenResources, '/pais/filhoselecionado')

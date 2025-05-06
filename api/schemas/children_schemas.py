@@ -12,7 +12,13 @@ class ChildrenSchema(ma.Schema):
     foto = fields.Str(required=False)
     email = fields.Str(required=True, validate=Length(min=1))
     dataNasc = fields.Str(required=True, validate=Length(min=1))
-    responsavel = fields.Str(required=False)
+    pontos = fields.Float(required=False, validate=Length(min=1))
+    medalhas = fields.List(fields.Dict(fields.Str()), required=False)
+    fasesConluidas = fields.Integer(required=False, validate=Length(min=1))
+    rankingAtual = fields.Integer(required=False, validate=Length(min=1))
+    audio = fields.Boolean(required=False)
+    missoesDiarias = fields.List(fields.Dict(fields.Str()), required=False)
+    responsavel = fields.Str(required=True)
 
     @pre_load
     def strip_whitespace(self, data, **kwargs):
@@ -21,17 +27,6 @@ class ChildrenSchema(ma.Schema):
         for key, value in data.items():
             if key in skip_fields:
                 continue
-            if isinstance(value, str):
-                data[key] = value.strip()
-        return data
-
-class ChildrenLoginSchema(ma.Schema):
-    usuario = fields.Str(required=True, validate=Length(min=1))
-    senha = fields.Str(required=True, validate=Length(min=1))
-
-    @pre_load
-    def strip_whitespace(self, data, **kwargs):
-        for key, value in data.items():
             if isinstance(value, str):
                 data[key] = value.strip()
         return data
