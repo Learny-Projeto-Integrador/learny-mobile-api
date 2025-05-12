@@ -13,6 +13,24 @@ def get_parent_by_id(id):
         return user_data
     else:
         return {'error': 'Erro ao buscar os dados do pai'}
+    
+def get_all_children(id):
+    try:
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+
+    # Verifica se existe um pai com esse ID
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
+        return {'error': 'Pai não encontrado ou acesso não autorizado'}
+
+    # Busca as crianças cujo responsável é esse pai e o usuário é correspondente
+    criancas = mongo.db.criancas.find({'responsavel': obj_id})
+    if criancas:
+        return criancas
+    else:
+        return {"error": "Nenhuma criança encontrada para este responsável"}
 
 def register_parent(data):
     foto = data.foto
@@ -30,7 +48,7 @@ def register_parent(data):
         'email': email,
         'dataNasc': dataNasc,
         'filhos': [],
-        'filhoSelecionado': {},
+        'filhoSelecionado': "",
     }
 
     # Buscar usuário no banco
@@ -93,26 +111,27 @@ def add_children(id, new_child):
     if not pai:
         return {'error': 'Pai não encontrado'}
 
-    if pai.get('filhoSelecionado', None) == {}:
+    if '_id' in new_child:
+        try:
+            new_child['_id'] = ObjectId(new_child['_id'])
+        except Exception:
+            return {'error': 'ID do filho inválido'}
+        
+    if pai.get('filhoSelecionado', None) == "":
         # Supondo que new_child contenha um campo "id" que deve virar ObjectId
-        if '_id' in new_child:
-            try:
-                new_child['_id'] = ObjectId(new_child['_id'])
-            except Exception:
-                return {'error': 'ID do filho inválido'}
             
         result = mongo.db.pais.update_one(
             {'_id': obj_id},
             {
-                '$push': {'filhos': new_child},
-                '$set': {'filhoSelecionado': new_child}
+                '$push': {'filhos': new_child["_id"]},
+                '$set': {'filhoSelecionado': new_child["_id"]}
             }
         )
         
     else:
         result = mongo.db.pais.update_one(
             {'_id': obj_id},
-            {'$push': {'filhos': new_child}}
+            {'$push': {'filhos': new_child["_id"]}}
         )
 
     if result.modified_count > 0:
@@ -120,6 +139,55 @@ def add_children(id, new_child):
     else:
         return {'error': 'Erro ao adicionar filho'}
     
+def get_children_by_parent(id, user):
+    try:
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+
+    # Verifica se existe um pai com esse ID
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
+        return {'error': 'Pai não encontrado ou acesso não autorizado'}
+
+    # Busca as crianças cujo responsável é esse pai e o usuário é correspondente
+    crianca = mongo.db.criancas.find_one({'responsavel': obj_id, 'usuario': user})
+    if crianca:
+        return crianca
+    else:
+        return {"error": "Nenhuma criança encontrada para este responsável"}
+    
+def edit_children(id, new_child):
+    print("entrou aqui")
+    try:
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+
+    # Verifica se existe um pai com esse ID
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
+        return {'error': 'Pai não encontrado ou acesso não autorizado'}
+
+    # Busca as crianças cujo responsável é esse pai e o usuário é correspondente
+    crianca = list(mongo.db.criancas.find({'responsavel': obj_id, 'usuario': new_child["usuario"]}))
+
+    if new_child['senha']:
+        new_child['senha'] = generate_password_hash(new_child['senha'])
+    else:
+        # Se não houver nova senha, remove o campo para manter a antiga
+        new_child.pop('senha', None)
+
+    result = mongo.db.criancas.update_one(
+        {'_id': crianca[0]['_id']},
+        {'$set': new_child}
+    )
+
+    if result.modified_count > 0:
+        return {'message': 'Filho alterado com sucesso'}
+    else:
+        return {'error': 'Erro ao editar o filho'}
+
 def edit_selected_children(id, new_child):
     try:
         obj_id = ObjectId(id)
@@ -139,7 +207,7 @@ def edit_selected_children(id, new_child):
     result = mongo.db.pais.update_one(
         {'_id': obj_id},
         {
-            '$set': {'filhoSelecionado': new_child}
+            '$set': {'filhoSelecionado': new_child["_id"]}
         }
     )
 
@@ -147,3 +215,51 @@ def edit_selected_children(id, new_child):
         return {'message': 'Filho selecionado alterado com sucesso'}
     else:
         return {'error': 'Erro ao alterar o filho selecionado'}
+    
+
+def delete_children_by_parent(id, user):
+    try:
+        obj_id = ObjectId(id)
+    except Exception:
+        return {'error': 'ID inválido'}
+
+    # Verifica se existe um pai com esse ID
+    pai = mongo.db.pais.find_one({'_id': obj_id})
+    if not pai:
+        return {'error': 'Pai não encontrado ou acesso não autorizado'}
+
+    # Busca a criança cujo responsável é esse pai e o usuário corresponde
+    crianca = mongo.db.criancas.find_one({'responsavel': obj_id, 'usuario': user})
+    if not crianca:
+        return {"error": "Nenhuma criança encontrada para este responsável"}
+
+    crianca_id = crianca['_id']
+
+    # Remove do array 'filhos' o objeto que contém o mesmo usuário
+    mongo.db.pais.update_one(
+        {'_id': obj_id},
+        {'$pull': {'filhos': {'usuario': user}}}
+    )
+
+    # Deleta a criança da coleção
+    mongo.db.criancas.delete_one({'_id': crianca_id})
+
+    # Se o filho selecionado for o que foi removido, substituir
+    filho_selecionado = pai.get('filhoSelecionado')
+    if filho_selecionado and filho_selecionado.get('usuario') == user:
+        # Pega o próximo filho restante desse pai (se houver)
+        novo_filho = mongo.db.criancas.find_one({'responsavel': obj_id})
+
+        if novo_filho:
+            mongo.db.pais.update_one(
+                {'_id': obj_id},
+                {'$set': {'filhoSelecionado': novo_filho}}
+            )
+        else:
+            # Se não houver mais filhos, remove o campo
+            mongo.db.pais.update_one(
+                {'_id': obj_id},
+                {'$unset': {'filhoSelecionado': ""}}
+            )
+
+    return {'message': 'Conta excluída com sucesso'}

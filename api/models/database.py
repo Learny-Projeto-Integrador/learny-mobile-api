@@ -12,8 +12,9 @@ class Pais():
         self.filhoSelecionado = filhoSelecionado
         
 class Criancas():
-    def __init__(self, foto, usuario, nome, senha, email, dataNasc, pontos, fasesConcluidas, medalhas, rankingAtual, missoesDiarias, audio, responsavel):
+    def __init__(self, foto, avatar, usuario, nome, senha, email, dataNasc, pontos, fasesConcluidas, medalhas, medalhaSelecionada, rankingAtual, missoesDiarias, audio, mundos, responsavel):
         self.foto = foto
+        self.avatar = avatar
         self.usuario = usuario
         self.nome = nome
         self.senha = senha
@@ -22,7 +23,10 @@ class Criancas():
         self.pontos = pontos
         self.fases = fasesConcluidas,
         self.medalhas = medalhas,
+        self.medalhaSelecionada = medalhaSelecionada,
         self.rankingAtual = rankingAtual
         self.missoesDiarias = missoesDiarias
         self.audio = audio
+        self.mundos = mundos
         self.responsavel = responsavel
+    

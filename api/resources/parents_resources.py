@@ -39,7 +39,7 @@ class ParentResources(Resource):
         if "error" in result:
             return make_response(jsonify({"error": result["error"]}), 400)
 
-        return make_response(jsonify(result["message"]), 201)
+        return make_response(jsonify(result), 201)
 
     @jwt_required()
     def put(self):
@@ -73,6 +73,43 @@ class AddChildrenResources(Resource):
         parent_service.add_children(parent_id, new_children)
         return make_response(jsonify(parent), 200)
     
+class ManageChildrenResources(Resource):
+    @jwt_required()
+    def get(self):
+        parent_id = get_jwt_identity()
+        children = parent_service.get_all_children(ObjectId(parent_id))
+        if children is None:
+            return make_response(jsonify("Criança não encontrada."), 404)
+        return make_response(jsonify(children), 200)
+    
+    @jwt_required()
+    def put(self):
+        parent_id = get_jwt_identity()
+        parent = parent_service.get_parent_by_id(ObjectId(parent_id))
+        new_children = request.json
+        if parent is None:
+            return make_response(jsonify("Responsável não encontrado."), 404)
+        children = parent_service.edit_children(parent_id, new_children)
+        return make_response(jsonify(children), 200)
+
+    
+class ChildrenByUserResources(Resource):
+    @jwt_required()
+    def get(self, user):
+        parent_id = get_jwt_identity()
+        children = parent_service.get_children_by_parent(ObjectId(parent_id), user)
+        if children is None:
+            return make_response(jsonify("Criança não encontrada."), 404)
+        return make_response(jsonify(children), 200)
+    
+    @jwt_required()
+    def delete(self, user):
+        parent_id = get_jwt_identity()
+        children = parent_service.delete_children_by_parent(ObjectId(parent_id), user)
+        if children is None:
+            return make_response(jsonify("Criança não encontrada."), 404)
+        return make_response(jsonify("Conta excluída com sucesso"), 204)
+    
 class EditSelectedChildrenResources(Resource):
     @jwt_required()
     def put(self):
@@ -88,4 +125,6 @@ class EditSelectedChildrenResources(Resource):
 api.add_resource(ParentResources, '/pais')
 api.add_resource(ParentDetailResources, '/pais/<id>')
 api.add_resource(AddChildrenResources, '/pais/addcrianca')
+api.add_resource(ManageChildrenResources, '/pais/criancas')
+api.add_resource(ChildrenByUserResources, '/pais/crianca/<user>')
 api.add_resource(EditSelectedChildrenResources, '/pais/filhoselecionado')

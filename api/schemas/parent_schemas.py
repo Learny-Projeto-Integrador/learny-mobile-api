@@ -13,8 +13,8 @@ class ParentSchema(ma.Schema):
     nome = fields.Str(required=True, validate=Length(min=1))
     email = fields.Str(required=True, validate=Length(min=1))
     dataNasc = fields.Str(required=True, validate=Length(min=1))
-    filhos = fields.List(fields.Nested(ChildrenSchema), required=False)
-    filhoSelecionado = fields.Dict(fields.Str(), required=False)
+    filhos = fields.List(fields.Str(), required=False)
+    filhoSelecionado = fields.Str(required=False)
 
     @pre_load
     def strip_whitespace(self, data, **kwargs):
