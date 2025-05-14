@@ -14,4 +14,4 @@ if __name__ == "__main__":
         if not all(col in existing_collections for col in required_collections):
             base_data_service.insert_data()
 
-    app.run(host="localhost", port="5000", debug=True)
+    app.run(host="localhost", port="5000")

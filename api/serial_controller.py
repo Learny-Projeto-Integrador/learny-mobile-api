@@ -27,6 +27,10 @@ def init_arduino(port='COM6', baudrate=9600):
     except Exception as e:
         print("Erro ao conectar com Arduino:", e)
         return False
+    
+def is_arduino_connected():
+    global arduino
+    return arduino is not None and arduino.is_open
 
 def get_last_button():
     global last_button_pressed
