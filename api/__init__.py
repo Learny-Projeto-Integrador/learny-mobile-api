@@ -15,5 +15,5 @@ api = Api(app)
 mongo = PyMongo(app)
 
 # Importando os recursos
-from .resources import parents_resources, children_resources, login_resources
+from .resources import parents_resources, children_resources, login_resources, button_resources
 

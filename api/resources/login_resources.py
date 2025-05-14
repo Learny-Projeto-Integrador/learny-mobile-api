@@ -5,9 +5,15 @@ from flask import make_response, jsonify, request
 from ..schemas.login_schemas import LoginSchema
 from ..services import login_service
 from flask_jwt_extended import create_access_token
+from api.serial_controller import init_arduino
 
 class LoginResources(Resource):
     def post(self):
+        arduino = init_arduino("COM6")
+        arduino_conectado = False
+        if arduino:
+            arduino_conectado = True
+            
         mv = LoginSchema()
         try:
             validated_data = mv.load(request.json)
@@ -26,7 +32,8 @@ class LoginResources(Resource):
         return make_response(jsonify(
             access_token=access_token,
             tipo=tipo_usuario,
-            nome=nome_usuario
+            nome=nome_usuario,
+            arduino=arduino_conectado
         ), 200)
     
 api.add_resource(LoginResources, '/login')
