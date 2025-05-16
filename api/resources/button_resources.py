@@ -7,6 +7,7 @@ from api import api
 class ButtonResource(Resource):
     def get(self):
         btn = get_last_button()
+        print(btn)
         return jsonify({'button': btn})
     
 api.add_resource(ButtonResource, '/button')

@@ -13,7 +13,6 @@ def read_from_arduino():
                 line = arduino.readline().decode('utf-8').strip()
                 if line in ['ok1', 'ok2', 'ok3']:
                     last_button_pressed = line
-                    print(last_button_pressed)
         except Exception as e:
             print("Erro ao ler do Arduino:", e)
 
