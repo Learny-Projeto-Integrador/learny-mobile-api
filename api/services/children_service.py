@@ -216,9 +216,16 @@ def edit_children_score(id, new_data, tipo_fase=None):
             if medalha:
                 medalha_com_data = dict(medalha)
                 medalha_com_data['dataConquista'] = datetime.now().isoformat()
+
+                update_fields = {'$push': {'medalhas': medalha_com_data}}
+
+                # Verifica se a criança ainda não possui uma medalha selecionada
+                if existing_data.get("medalhaSelecionada") == {}:
+                    update_fields['$set'] = {'medalhaSelecionada': medalha_com_data}
+
                 mongo.db.criancas.update_one(
                     {'_id': obj_id},
-                    {'$push': {'medalhas': medalha_com_data}}
+                    update_fields
                 )
                 medalhas_adicionadas.append(medalha_com_data)
 

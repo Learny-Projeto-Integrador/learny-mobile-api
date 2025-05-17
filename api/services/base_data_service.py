@@ -4,11 +4,11 @@ from werkzeug.security import generate_password_hash
 def insert_parent():
     dados = {
         'foto': "",
-        'usuario': 'admin',
+        'usuario': 'joao',
         'senha': generate_password_hash('123'),
         'nome': 'João Marcos',
-        'email': 'admin@gmail.com',
-        'dataNasc': '01-01-1990',
+        'email': 'joao@gmail.com',
+        'dataNasc': '01/01/1990',
         'filhos': [],
         'filhoSelecionado': "",
     }

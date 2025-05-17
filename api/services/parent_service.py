@@ -68,23 +68,27 @@ def edit_parent(id, new_data):
     except Exception:
         return {'error': 'ID inválido'}
     
-    # Buscar usuário no banco
-    parent_data = mongo.db.pais.find_one({'usuario': new_data['usuario']})
-    children_data = mongo.db.criancas.find_one({'usuario': new_data['usuario']})
-
-    if parent_data or children_data:
-        return {'error': 'Usuário já existente'}
-    
     if new_data.get('senha'):
         new_data['senha'] = generate_password_hash(new_data['senha'])
     else:
         # Se não houver nova senha, remove o campo para manter a antiga
         new_data.pop('senha', None)
+        
+    # Buscar usuário no banco
+    parent_data = mongo.db.pais.find_one({'usuario': new_data['usuario']})
+    children_data = mongo.db.criancas.find_one({'usuario': new_data['usuario']})
 
-    result = mongo.db.pais.update_one(
-        {'_id': obj_id},
-        {'$set': new_data}
-    )
+    if parent_data:
+        result = mongo.db.pais.update_one(
+            {'_id': obj_id},
+            {'$set': new_data}
+        )
+
+    if children_data:
+        result = mongo.db.criancas.update_one(
+            {'_id': obj_id},
+            {'$set': new_data}
+        )
 
     if result.matched_count > 0:
         return {'message': 'Dados atualizados com sucesso'}
