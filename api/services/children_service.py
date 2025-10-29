@@ -6,29 +6,38 @@ from bson import ObjectId, errors
 from pymongo import DESCENDING
 from datetime import datetime
 
-
-def get_children_by_id(id):
-    # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'_id': id})
-
-    if user_data:
-        return user_data
-    else:
-        return {'error': 'Erro ao buscar os dados da criança'}
+def get_child_by_id(id):
+    child_oid = convert_id(id)
+    if not child_oid:
+        return {'error': 'ID inválido'}, 400
     
-def get_children_by_user(new_data):
-    user_data = mongo.db.criancas.find_one({'usuario': new_data.user})
-
-    if user_data:
-        return user_data
+    crianca = mongo.db.criancas.find_one({'_id': child_oid})
+    if crianca:
+        crianca = mongo_to_dict(crianca)
+        return crianca, 200
     else:
-        return {'error': 'Erro ao buscar os dados da criança'}
+        return {"error": "Nenhum filho selecionado"}, 404
+    
+def edit_child(id, new_data):
+    child_oid = convert_id(id)
+    if not child_oid:
+        return {'error': 'ID inválido'}, 400
+    
+    result = mongo.db.criancas.update_one(
+        {'_id': child_oid},
+        {'$set': new_data}
+    )
+
+    if result.modified_count > 0:
+        return {'message': 'Dados alterados com sucesso'}, 200
+    else:
+        return {'error': 'Erro ao alterar os dados'}, 500
     
 def get_ranking():
     criancas = mongo.db.criancas.find().sort("pontos", DESCENDING)
 
     if not criancas:
-        return {'error': 'Erroa ao buscar os dados das crianças'}
+        return {'error': 'Dados das crianças não encontrados'}, 404
 
     ranking = []
     for c in criancas:
@@ -40,131 +49,24 @@ def get_ranking():
         })
 
     return ranking
-   
-
-def register_children(data):
-    foto = data.foto
-    usuario = data.usuario
-    nome = data.nome
-    senha = generate_password_hash(data.senha)
-    email = data.email
-    dataNasc = data.dataNasc
-    responsavel = data.responsavel
-    
-    if responsavel != "":
-        try:
-            responsavel = ObjectId(data.responsavel)
-        except (errors.InvalidId, TypeError):
-            return {'error': 'ID do responsável inválido.'}
-
-    # Verifica se o usuário já existe
-    children_data = mongo.db.criancas.find_one({'usuario': usuario})
-    parent_data = mongo.db.pais.find_one({'usuario': usuario})
-
-    if children_data or parent_data:
-        return {'error': 'Usuário já existente'}
-
-    # Sorteia 3 missões da coleção de missões diárias predefinidas
-    missoes = list(mongo.db.diarias.aggregate([{ "$sample": { "size": 3 } }]))
-
-    # Remove o _id (opcional, se você quiser evitar duplicidade de referência)
-    for m in missoes:
-        m.pop('_id', None)
-
-    dados = {
-        'foto': foto,
-        'avatar': "",
-        'usuario': usuario,
-        'senha': senha,
-        'nome': nome,
-        'email': email,
-        'dataNasc': dataNasc,
-        'pontos': 0,
-        'fasesConcluidas': 0,
-        'medalhas': [],
-        'medalhaSelecionada': {},
-        'rankingAtual': 0,
-        'missoesDiarias': missoes,
-        'audio': True,
-        'mundos': [{
-            "mundo": 1,
-            "faseAtual": "",
-            "fases": [
-                {
-                    "fase": 1,
-                    "concluida": False
-                },
-                {
-                    "fase": 2,
-                    "concluida": False
-                },
-                {
-                    "fase": 3,
-                    "concluida": False
-                },
-                {
-                    "boss": 4,
-                    "concluida": False
-                }
-            ]
-        }],
-        'responsavel': responsavel,
-    }
-
-    result = mongo.db.criancas.insert_one(dados)
-    return {
-    'message': 'Usuário cadastrado com sucesso!',
-    'dados': {
-        '_id': str(result.inserted_id),  # Convertemos para string para facilitar o uso em JSON
-        'usuario': usuario,
-        'nome': nome,
-        # outros campos que quiser retornar
-    }
-}
-    
-def edit_children(id, new_data):
-    try:
-        # Certificar que o ID é do tipo ObjectId
-        obj_id = ObjectId(id)
-    except Exception:
-        return {'error': 'ID inválido'}
-    
-    if new_data.get('senha'):
-        new_data['senha'] = generate_password_hash(new_data['senha'])
-    else:
-        # Se não houver nova senha, remove o campo para manter a antiga
-        new_data.pop('senha', None)
-
-    result = mongo.db.criancas.update_one(
-        {'_id': obj_id},
-        {'$set': new_data}
-    )
-
-    if result.matched_count > 0:
-        return {'message': 'Dados atualizados com sucesso'}
-    else:
-        return {'error': 'Nenhuma alteração realizada'}
     
 def edit_rankings():
-     # Busca todas as crianças, ordenadas por pontos (maior para menor)
     criancas = list(mongo.db.criancas.find().sort('pontos', -1))
 
-    # Atualiza o campo 'ranking' com a posição na lista
     for index, crianca in enumerate(criancas):
         mongo.db.criancas.update_one(
             {'_id': crianca['_id']},
-            {'$set': {'rankingAtual': index + 1}}  # ranking começa em 1
+            {'$set': {'rankingAtual': index + 1}}
         )
-    
+   
 def edit_children_score(id, new_data, tipo_fase=None):
-    try:
-        obj_id = ObjectId(id)
-    except Exception:
-        return {'error': 'ID inválido'}
+    obj_id = convert_id(id)
+    if not  obj_id:
+        return {'error': 'ID inválido'}, 400
 
     existing_data = mongo.db.criancas.find_one({'_id': obj_id})
     if not existing_data:
-        return {'error': 'Criança não encontrada'}
+        return {'error': 'Criança não encontrada'}, 404
 
     updated_data = {}
     campos_somaveis = ['pontos', 'fasesConcluidas']
@@ -179,7 +81,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
             updated_data[campo] = valor_atual + valor_novo
 
     # Atualização das fases com base na sequência
-    fase_sequencia = ['connect', 'memory', 'feeling', 'listening']
+    fase_sequencia = ['connect', 'memory', 'feeling', 'boss']
 
     mundos = existing_data.get('mundos', [])
     boss_concluido = False
@@ -203,7 +105,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
                         }
                     )
                     # Marcar boss como concluído se for a fase listening
-                    if tipo_fase == "listening":
+                    if tipo_fase == "boss":
                         boss_concluido = True
 
     # Checar por medalhas a serem atribuídas
@@ -284,14 +186,26 @@ def edit_children_score(id, new_data, tipo_fase=None):
         'medalhasGanhas': medalhas_adicionadas
     }
 
-    return response
+    return response, 200
 
-def delete_children(id):
-    # Buscar usuário no banco
-    user_data = mongo.db.criancas.find_one({'_id': id})
-
-    if user_data:
-        mongo.db.criancas.deleteMany({'_id': id})
-        return {'message': 'Conta excluida com sucesso'}
+def convert_id(id_str):
+    try:
+        return ObjectId(id_str)
+    except Exception:
+        return None
+    
+def mongo_to_dict(doc):
+    if isinstance(doc, list):
+        return [mongo_to_dict(item) for item in doc]
+    elif isinstance(doc, dict):
+        new_doc = {}
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                new_doc[key] = str(value)
+            elif isinstance(value, (dict, list)):
+                new_doc[key] = mongo_to_dict(value)
+            else:
+                new_doc[key] = value
+        return new_doc
     else:
-        return {'error': 'Erro ao buscar os dados da criança'}
+        return doc
