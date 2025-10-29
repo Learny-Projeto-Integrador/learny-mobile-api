@@ -12,15 +12,15 @@ def login(data):
     if parent_data:
         if check_password_hash(parent_data['senha'], senha):
             parent_data['tipo'] = 'pai'
-            return parent_data
+            return parent_data, 200
         else:
             return {'error': 'Senha Inválida'}
         
     elif children_data:
         if check_password_hash(children_data['senha'], senha):
             children_data['tipo'] = 'crianca'
-            return children_data
+            return children_data, 200
         else:
-            return {'error': 'Senha Inválida'}
+            return {'error': 'Senha Inválida'}, 400
     else:
-        return {'error': 'Usuário ou senha inválidos'}
+        return {'error': 'Usuário ou senha inválidos'}, 400
