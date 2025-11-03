@@ -25,7 +25,7 @@ else:
     mongo_uri = f"mongodb://localhost:27017/{DB_NAME}"
 
 app.config["MONGO_URI"] = mongo_uri
-app.config["JWT_SECRET_KEY"] = "super-secret-key"  # chave secreta
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "default-secret")
 
 jwt = JWTManager(app)
 ma = Marshmallow(app)
