@@ -15,7 +15,6 @@ class ObjectIdField(fields.Field):
         except Exception:
             raise ValidationError("ObjectId inválido.")
 
-# Schema manual (em vez de class_schema pra controle fino)
 class ChildrenSchema(ma.Schema):
     _id = ObjectIdField(dump_only=True)
     usuario = fields.Str(required=True)

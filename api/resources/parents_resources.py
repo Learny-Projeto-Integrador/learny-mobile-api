@@ -5,7 +5,6 @@ from api import api
 from flask import make_response, jsonify, request
 from ..schemas.parent_schemas import ParentSchema
 from ..schemas.children_schemas import ChildrenSchema
-from ..models import database
 from ..services import parent_service
 from flask_jwt_extended import jwt_required, get_jwt_identity
 

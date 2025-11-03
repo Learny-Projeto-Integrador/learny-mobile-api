@@ -1,4 +1,3 @@
-from bson import ObjectId
 from flask_restful import Resource
 from api import api
 from flask import make_response, jsonify, request

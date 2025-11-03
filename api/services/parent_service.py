@@ -1,6 +1,5 @@
 from api import mongo
-from flask import request, jsonify
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import generate_password_hash
 from ..models import database
 from bson import ObjectId
 
@@ -186,6 +185,12 @@ def delete_child(id, parent_id):
     mongo.db.pais.update_one(
         {'_id': parent_oid},
         {'$pull': {'filhos': child_oid}}
+    )
+    
+    # Se o filho removido for o filho selecionado, limpa o campo
+    mongo.db.pais.update_one(
+        {'_id': parent_oid, 'filhoSelecionado': child_oid},
+        {'$set': {'filhoSelecionado': ""}}
     )
 
     # Deleta a criança da coleção

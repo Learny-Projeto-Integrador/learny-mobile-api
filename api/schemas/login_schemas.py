@@ -1,6 +1,4 @@
-# Importando o Marshmallow
 from api import ma
-# Importando Schema e Fields
 from marshmallow import fields, pre_load
 from marshmallow.validate import Length
 

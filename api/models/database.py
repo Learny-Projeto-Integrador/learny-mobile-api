@@ -39,11 +39,9 @@ class Pai:
                     for k, v in value.items()
                 }
 
-        # Remove o _id se for None
         if data.get("_id") is None:
             data.pop("_id", None)
 
-        # ⚙️ Remove senha se estiver vazia ou None
         if not data.get("senha"):
             data.pop("senha", None)
 
@@ -104,11 +102,9 @@ class Crianca:
                     for k, v in value.items()
                 }
 
-        # Remove o _id se for None
         if data.get("_id") is None:
             data.pop("_id", None)
 
-        # ⚙️ Remove senha se estiver vazia ou None
         if not data.get("senha"):
             data.pop("senha", None)
 

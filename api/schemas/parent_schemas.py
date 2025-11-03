@@ -16,7 +16,6 @@ class ObjectIdField(fields.Field):
         except Exception:
             raise ValidationError("ObjectId inválido.")
 
-# Schema manual (em vez de class_schema pra controle fino)
 class ParentSchema(ma.Schema):
     _id = fields.Str()
     foto = fields.Str()

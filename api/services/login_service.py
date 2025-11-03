@@ -5,7 +5,6 @@ def login(data):
     usuario = data.get('usuario')
     senha = data.get('senha')
 
-    # Buscar usuário no banco
     parent_data = mongo.db.pais.find_one({'usuario': usuario})
     children_data = mongo.db.criancas.find_one({'usuario': usuario})
 
@@ -14,7 +13,7 @@ def login(data):
             parent_data['tipo'] = 'pai'
             return parent_data, 200
         else:
-            return {'error': 'Senha Inválida'}
+            return {'error': 'Senha Inválida'}, 400
         
     elif children_data:
         if check_password_hash(children_data['senha'], senha):

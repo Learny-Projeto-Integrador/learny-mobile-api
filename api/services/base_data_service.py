@@ -1,18 +1,4 @@
 from api import mongo
-from werkzeug.security import generate_password_hash
-
-def insert_parent():
-    dados = {
-        'foto': "",
-        'usuario': 'joao',
-        'senha': generate_password_hash('123'),
-        'nome': 'João Marcos',
-        'email': 'joao@gmail.com',
-        'dataNasc': '01/01/1990',
-        'filhos': [],
-        'filhoSelecionado': "",
-    }
-    mongo.db.pais.insert_one(dados)
 
 def insert_medals():
     medalhas = [
@@ -74,7 +60,6 @@ def insert_daily_missions():
     mongo.db.diarias.insert_many(missoesDiarias)
 
 def insert_data():
-    insert_parent()
     insert_medals()
     insert_missions()
     insert_daily_missions()
