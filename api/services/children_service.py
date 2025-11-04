@@ -66,16 +66,15 @@ def edit_children_score(id, new_data, tipo_fase=None):
         return {'error': 'Criança não encontrada'}, 404
 
     updated_data = {}
-    campos_somaveis = ['pontos', 'fasesConcluidas']
     pontos_bonus = 0
     missao_concluida_info = None
     medalhas_adicionadas = []
 
-    for campo in campos_somaveis:
-        valor_atual = existing_data.get(campo, 0)
-        valor_novo = new_data.get(campo, 0)
-        if isinstance(valor_atual, (int, float)) and isinstance(valor_novo, (int, float)):
-            updated_data[campo] = valor_atual + valor_novo
+    # Atualiza pontos somando o valor enviado em new_data
+    valor_atual_pontos = existing_data.get('pontos', 0)
+    valor_novo_pontos = new_data.get('pontos', 0)
+    if isinstance(valor_atual_pontos, (int, float)) and isinstance(valor_novo_pontos, (int, float)):
+        updated_data['pontos'] = valor_atual_pontos + valor_novo_pontos
 
     # Atualização das fases com base na sequência
     fase_sequencia = ['connect', 'memory', 'feeling', 'boss']
@@ -91,6 +90,8 @@ def edit_children_score(id, new_data, tipo_fase=None):
                 if not fase_info.get('concluida', False):
                     fases[index_fase]['concluida'] = True
                     fase_atual = index_fase + 1  # faseAtual será 1 a 4
+
+                    updated_data['fasesConcluidas'] = existing_data.get('fasesConcluidas', 0) + 1
 
                     mongo.db.criancas.update_one(
                         {'_id': obj_id},
