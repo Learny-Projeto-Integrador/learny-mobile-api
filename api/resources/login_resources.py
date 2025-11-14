@@ -21,16 +21,35 @@ class LoginResources(Resource):
         
         access_token = create_access_token(identity=str(result["_id"]))
 
+        if result.get("tipo") == "pai":
+            usuario = {
+                "id": str(result["_id"]),
+                "foto": result.get("foto"),
+                "usuario": result.get("usuario"),
+                "nome": result.get("nome"),
+                "email": result.get("email"),
+                "filhos": result.get("filhos"),
+                "filhoSelecionado": result.get("filhoSelecionado") or ""
+            }
+        else: 
+            usuario = {
+                "id": str(result["_id"]),
+                "foto": result.get("foto"),
+                "nome": result.get("nome"),
+                "pontos": result.get("pontos"),
+                "fasesConcluidas": result.get("fasesConcluidas"),
+                "medalhas": result.get("medalhas") or [],
+                "medalhaSelecionada": result.get("medalhaSelecionada") or "",
+                "rankingAtual": result.get("rankingAtual"),
+                "missoesDiarias": result.get("missoesDiarias"),
+                "audioAtivado": result.get("audio"),
+                "rankingAtivado": result.get("ranking"),
+                "mundos": result.get("mundos"),
+            }
+
         return make_response(jsonify(
             access_token=access_token,
-            tipo=result.get("tipo"),
-            id=result.get("_id"),
-            foto=result.get("foto"),
-            usuario=result.get("usuario"),
-            nome=result.get("nome"),
-            email=result.get("email"),
-            filhos=result.get("filhos"),
-            filhoSelecionado=result.get("filhoSelecionado") or ""
+            user=usuario
         ), status)
     
 api.add_resource(LoginResources, '/login')
