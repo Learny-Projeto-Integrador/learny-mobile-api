@@ -77,7 +77,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
         updated_data['pontos'] = valor_atual_pontos + valor_novo_pontos
 
     # Atualização das fases com base na sequência
-    fase_sequencia = ['connect', 'memory', 'feeling', 'boss']
+    fase_sequencia = ['connect', 'memory', "secret", 'feeling', 'boss']
 
     mundos = existing_data.get('mundos', [])
     boss_concluido = False
@@ -102,7 +102,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
                             }
                         }
                     )
-                    # Marcar boss como concluído se for a fase listening
+                    # Marcar boss como concluído se for a fase boss
                     if tipo_fase == "boss":
                         boss_concluido = True
 
@@ -177,11 +177,24 @@ def edit_children_score(id, new_data, tipo_fase=None):
 
     edit_rankings()
 
+    crianca_atualizada = mongo.db.criancas.find_one({'_id': obj_id})
+    crianca_atualizada = mongo_to_dict(crianca_atualizada)
+
+    usuario_retorno = {
+        "pontos": crianca_atualizada["pontos"],
+        "medalhas": crianca_atualizada["medalhas"],
+        "missoesDiarias": crianca_atualizada["missoesDiarias"],
+        "fasesConcluidas": crianca_atualizada["fasesConcluidas"],
+        "raningAtual": crianca_atualizada["rankingAtual"],
+        "mundos": crianca_atualizada["mundos"],
+    }
+
     response = {
         'message': 'Dados atualizados com sucesso' if result.modified_count > 0 or missao_removida else 'Nenhuma alteração realizada',
         'bonus': pontos_bonus,
         'missaoConcluida': missao_concluida_info,
-        'medalhasGanhas': medalhas_adicionadas
+        'medalhasGanhas': medalhas_adicionadas,
+        'usuarioAtualizado': usuario_retorno,
     }
 
     return response, 200
