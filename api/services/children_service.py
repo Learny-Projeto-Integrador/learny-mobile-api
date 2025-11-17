@@ -183,6 +183,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
     usuario_retorno = {
         "pontos": crianca_atualizada["pontos"],
         "medalhas": crianca_atualizada["medalhas"],
+        "medalhaSelecionada": crianca_atualizada["medalhaSelecionada"],
         "missoesDiarias": crianca_atualizada["missoesDiarias"],
         "fasesConcluidas": crianca_atualizada["fasesConcluidas"],
         "rankingAtual": crianca_atualizada["rankingAtual"],
