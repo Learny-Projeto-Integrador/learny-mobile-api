@@ -185,7 +185,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
         "medalhas": crianca_atualizada["medalhas"],
         "missoesDiarias": crianca_atualizada["missoesDiarias"],
         "fasesConcluidas": crianca_atualizada["fasesConcluidas"],
-        "raningAtual": crianca_atualizada["rankingAtual"],
+        "rankingAtual": crianca_atualizada["rankingAtual"],
         "mundos": crianca_atualizada["mundos"],
     }
 
