@@ -77,7 +77,7 @@ def edit_children_score(id, new_data, tipo_fase=None):
         updated_data['pontos'] = valor_atual_pontos + valor_novo_pontos
 
     # Atualização das fases com base na sequência
-    fase_sequencia = ['connect', 'memory', "secret", 'feeling', 'boss']
+    fase_sequencia = ['connect', 'memory', 'feeling', 'boss', 'secret']
 
     mundos = existing_data.get('mundos', [])
     boss_concluido = False
