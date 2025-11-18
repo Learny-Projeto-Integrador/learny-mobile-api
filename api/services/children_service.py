@@ -25,10 +25,15 @@ def edit_child(id, new_data):
         {'$set': new_data}
     )
 
-    if result.modified_count > 0:
-        return {'message': 'Dados alterados com sucesso'}, 200
-    else:
-        return {'error': 'Erro ao alterar os dados'}, 500
+    if result.matched_count == 0:
+        return {'error': 'Criança não encontrada'}, 404
+
+    if result.modified_count == 0:
+        return {
+            'message': 'Nenhuma alteração realizada — os dados enviados são iguais aos existentes.'
+        }, 200
+
+    return {'message': 'Dados alterados com sucesso'}, 200
     
 def get_ranking():
     criancas = mongo.db.criancas.find().sort("pontos", DESCENDING)
