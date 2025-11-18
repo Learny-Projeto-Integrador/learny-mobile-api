@@ -49,7 +49,8 @@ class LoginResources(Resource):
 
         return make_response(jsonify(
             access_token=access_token,
-            user=usuario
+            user=usuario,
+            tipo=result.get("tipo")
         ), status)
     
 api.add_resource(LoginResources, '/login')
