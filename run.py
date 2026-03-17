@@ -9,12 +9,12 @@ def home():
 
 # Criando o banco com suas coleções iniciais, se não existirem
 with app.app_context():
-    required_collections = ['pais', 'medalhas', 'missoes', 'diarias']
+    required_collections = ['world_definitions', 'medal_definitions', 'mission_definitions']
     existing_collections = mongo.db.list_collection_names()
 
     # Se alguma coleção obrigatória não existir, insere os dados
     if not all(col in existing_collections for col in required_collections):
-        base_data_service.insert_data()
+        base_data_service.insert_base_data()
 
 if __name__ == "__main__":
     app.run(host="localhost", debug=True)
