@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Optional
 from bson import ObjectId
 from api.models.base_model import BaseModel
@@ -11,5 +12,5 @@ class Parent(BaseModel):
     name: str = ""
     password: str = ""
     email: str = ""
-    children: List[ObjectId] = field(default_factory=list)
     selectedChild: str = ""
+    birthDate: Optional[datetime] = None

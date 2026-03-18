@@ -8,7 +8,7 @@ class ChildrenSchema(ma.Schema):
     username = fields.Str(required=True)
     password = fields.Str(required=True, load_only=True)
     name = fields.Str(required=True)
-    profilePicture = fields.Str()
+    profilePicture = fields.Str(allow_none=True)
     avatar = fields.Str()
     birthDate = fields.DateTime(allow_none=True)
     points = fields.Float(load_default=0)
@@ -29,4 +29,4 @@ class ChildrenSchema(ma.Schema):
 
     @post_load
     def make_Child(self, data, **kwargs):
-        return Child.from_dict(data)
+        return Child(**data)

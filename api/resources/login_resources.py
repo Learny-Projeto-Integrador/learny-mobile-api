@@ -1,56 +1,35 @@
 from flask_restful import Resource
-from marshmallow import ValidationError
 from api import api
 from flask import make_response, jsonify, request
-from ..schemas.login_schemas import LoginSchema
+from api.utils.validate_data import handle_schema
+from ..schemas.login_schema import LoginSchema
 from ..services import login_service
 from flask_jwt_extended import create_access_token
 
-class LoginResources(Resource):
-    def post(self):     
-        mv = LoginSchema()
-        try:
-            validated_data = mv.load(request.json)
-        except ValidationError:
-            # Se der erro de validação, responde mensagem única
-            return make_response(jsonify({"error": "Preencha todos os campos obrigatórios."}), 400)
-    
-        result, status = login_service.login(validated_data)
-        if "error" in result:
-            return make_response(jsonify({"error": result["error"]}), status)
-        
-        access_token = create_access_token(identity=str(result["_id"]))
+schema = LoginSchema()
 
-        if result.get("tipo") == "pai":
-            usuario = {
-                "id": str(result["_id"]),
-                "foto": result.get("foto"),
-                "usuario": result.get("usuario"),
-                "nome": result.get("nome"),
-                "email": result.get("email"),
-                "filhos": result.get("filhos"),
-                "filhoSelecionado": result.get("filhoSelecionado") or ""
+class LoginResources(Resource):
+    def post(self):   
+        data, errors = handle_schema(schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+    
+        result, status = login_service.login(data)
+        if status != 200:
+            return make_response(jsonify(result), status)
+        
+        access_token = create_access_token(
+            identity=str(result["_id"]),
+            additional_claims={
+                "username": result["username"],
+                "name": result["name"],
+                "email": result["email"],
+                "type": result["type"],
             }
-        else: 
-            usuario = {
-                "id": str(result["_id"]),
-                "foto": result.get("foto"),
-                "nome": result.get("nome"),
-                "pontos": result.get("pontos"),
-                "fasesConcluidas": result.get("fasesConcluidas"),
-                "medalhas": result.get("medalhas") or [],
-                "medalhaSelecionada": result.get("medalhaSelecionada") or "",
-                "rankingAtual": result.get("rankingAtual"),
-                "missoesDiarias": result.get("missoesDiarias"),
-                "audioAtivado": result.get("audio"),
-                "rankingAtivado": result.get("ranking"),
-                "mundos": result.get("mundos"),
-            }
+        )
 
         return make_response(jsonify(
             access_token=access_token,
-            user=usuario,
-            tipo=result.get("tipo")
         ), status)
     
-api.add_resource(LoginResources, '/login')
+api.add_resource(LoginResources, '/auth/login')

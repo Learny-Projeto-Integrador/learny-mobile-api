@@ -1,8 +1,12 @@
 from flask_restful import Resource
 from api import api
 from flask import make_response, jsonify, request
+from api.utils.validate_data import handle_schema
 from ..services import children_service
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from ..schemas.children_schema import ChildrenSchema
+
+schema = ChildrenSchema()
 
 class ChildResources(Resource):
     @jwt_required()
@@ -14,7 +18,11 @@ class ChildResources(Resource):
     @jwt_required()
     def put(self):
         children_id = get_jwt_identity()
-        data = request.json
+        
+        data, errors = handle_schema(schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+        
         result, status = children_service.edit_child(children_id, data)
         return make_response(jsonify(result), status)
     
@@ -22,10 +30,17 @@ class UpdateChildrenScore(Resource):
     @jwt_required()
     def put(self):
         children_id = get_jwt_identity()
-        new_data = request.json
-        tipo_fase = new_data.get("tipoFase")
+        data = request.json
 
-        result, status = children_service.edit_children_score(children_id, new_data, tipo_fase)
+        phase_code = data.get("phaseCode")
+        world_code = data.get("worldCode")
+
+        result, status = children_service.complete_phase(
+            children_id,
+            phase_code,
+            world_code
+        )
+
         return make_response(jsonify(result), status)
      
 class RankingChildrenResources(Resource):
@@ -34,6 +49,6 @@ class RankingChildrenResources(Resource):
         ranking = children_service.get_ranking()
         return make_response(jsonify(ranking), 200)
 
-api.add_resource(ChildResources, '/criancas')
-api.add_resource(UpdateChildrenScore, '/criancas/faseconcluida')
-api.add_resource(RankingChildrenResources, '/criancas/ranking')
+api.add_resource(ChildResources, '/child')
+api.add_resource(UpdateChildrenScore, '/child/complete-phase')
+api.add_resource(RankingChildrenResources, '/child/ranking')

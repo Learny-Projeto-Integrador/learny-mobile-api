@@ -10,7 +10,7 @@ class ParentSchema(ma.Schema):
     password = fields.Str(required=True, load_only=True)
     name = fields.Str(required=True, validate=Length(min=1))
     email = fields.Str(required=True, validate=Length(min=1))
-    children = fields.List(fields.Str())
+    birthDate = fields.DateTime(allow_none=True)
     selectedChild = fields.Str()
 
     @pre_load

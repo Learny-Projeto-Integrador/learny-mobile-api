@@ -1,10 +1,11 @@
-from bson import ObjectId
+from unittest import result
+
 from flask_restful import Resource
-from marshmallow import ValidationError
 from api import api
 from flask import make_response, jsonify, request
-from ..schemas.parent_schemas import ParentSchema
-from ..schemas.children_schemas import ChildrenSchema
+from api.utils.validate_data import handle_schema
+from ..schemas.parent_schema import ParentSchema
+from ..schemas.children_schema import ChildrenSchema
 from ..services import parent_service
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
@@ -15,35 +16,33 @@ class ParentResources(Resource):
     @jwt_required()
     def get(self):
         parent_id = get_jwt_identity()
-        result, status = parent_service.get_parent_by_id(ObjectId(parent_id))
+        result, status = parent_service.get_parent_by_id(parent_id)
         return make_response(jsonify(result), status)
-    
-    def post(self):
-        try:
-            validated_data = parent_schema.load(request.json)
-        except ValidationError as err:
-            return make_response(jsonify({"error": f"Erro ao validar os dados recebidos, {err}."}), 400)
 
-        result, status = parent_service.register_parent(validated_data)
+    def post(self):
+        data, errors = handle_schema(parent_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+
+        result, status = parent_service.register_parent(data)
         return make_response(jsonify(result), status)
 
     @jwt_required()
     def put(self):
         parent_id = get_jwt_identity()
-        try:
-            validated_data = parent_schema.load(request.json)
-        except ValidationError as err:
-            return make_response(jsonify({"error": f"Erro ao validar os dados recebidos, {err}."}), 400)
 
-        result, status = parent_service.edit_parent(parent_id, validated_data)
+        data, errors = handle_schema(parent_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+
+        result, status = parent_service.edit_parent(parent_id, data)
         return make_response(jsonify(result), status)
-    
+
     @jwt_required()
     def delete(self):
         parent_id = get_jwt_identity()
-
-        result, status = parent_service.delete_parent(ObjectId(parent_id))
-        return make_response(jsonify(result), status)  
+        result, status = parent_service.delete_parent(parent_id)
+        return make_response(jsonify(result), status)
     
 class ChildrenResources(Resource):
     @jwt_required()
@@ -51,71 +50,64 @@ class ChildrenResources(Resource):
         parent_id = get_jwt_identity()
         result, status = parent_service.get_all_children(parent_id)
         return make_response(jsonify(result), status)
-    
+
     @jwt_required()
     def post(self):
         parent_id = get_jwt_identity()
-        try:
-            validated_data = children_schema.load(request.json)
-        except ValidationError:
-            return make_response(jsonify({"error": "Erro ao validar os dados recebidos."}), 400)
 
-        result, status = parent_service.register_children(parent_id, validated_data)
-        if "error" in result:
-            return make_response(jsonify({"error": result["error"]}), 400)
-
+        data, errors = handle_schema(children_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+        
+        result, status = parent_service.register_children(parent_id, data)
         return make_response(jsonify(result), status)
-
+    
 class ChildrenDetailResources(Resource):
     @jwt_required()
     def get(self, id):
         result, status = parent_service.get_child_by_id(id)
         return make_response(jsonify(result), status)
-        
+
     @jwt_required()
     def put(self, id):
-        try:
-            validated_data = children_schema.load(request.json)
-        except ValidationError as err:
-            return make_response(jsonify({"error": f"Erro ao validar os dados recebidos. {err}"}), 400)
-        
-        result,status = parent_service.edit_child(id, validated_data)
+        data, errors = handle_schema(children_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+
+        result, status = parent_service.edit_child(id, data)
         return make_response(jsonify(result), status)
-    
+
     @jwt_required()
     def delete(self, id):
         parent_id = get_jwt_identity()
         result, status = parent_service.delete_child(id, parent_id)
         return make_response(jsonify(result), status)
-    
+
 class EditStatusResources(Resource):
     @jwt_required()
     def put(self, id):
         data = request.json
         
-        result,status = parent_service.edit_child_status(id, data)
+        result, status = parent_service.edit_child_status(id, data)
         return make_response(jsonify(result), status)
 
 class SelectedChildrenResources(Resource):
     @jwt_required()
     def get(self):
         parent_id = get_jwt_identity()
-
         result, status = parent_service.get_selected_child(parent_id)
         return make_response(jsonify(result), status)
-    
+
     @jwt_required()
     def put(self):
         parent_id = get_jwt_identity()
-        new_child = request.json
-        child_id = new_child["id"]
+        child_id = request.json.get("id")
 
         result, status = parent_service.edit_selected_children(parent_id, child_id)
         return make_response(jsonify(result), status)
 
-      
-api.add_resource(ParentResources, '/pais')
-api.add_resource(ChildrenResources, '/pais/criancas')
-api.add_resource(ChildrenDetailResources, '/pais/crianca/<string:id>')
-api.add_resource(EditStatusResources, '/pais/crianca/status/<string:id>')
-api.add_resource(SelectedChildrenResources, '/pais/filhoSelecionado')
+api.add_resource(ParentResources, '/parents')
+api.add_resource(ChildrenResources, '/parents/children')
+api.add_resource(ChildrenDetailResources, '/parents/children/<string:id>')
+api.add_resource(EditStatusResources, '/parents/children/<string:id>/status')
+api.add_resource(SelectedChildrenResources, '/parents/selected-child')
