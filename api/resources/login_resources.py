@@ -21,10 +21,11 @@ class LoginResources(Resource):
         access_token = create_access_token(
             identity=str(result["_id"]),
             additional_claims={
-                "username": result["username"],
-                "name": result["name"],
-                "email": result["email"],
-                "type": result["type"],
+                "user": {
+                    "username": result["username"],
+                    "name": result["name"],
+                    "type": result["type"]
+                }
             }
         )
 
