@@ -1,6 +1,7 @@
 from api import mongo
 from werkzeug.security import generate_password_hash
 from api.models import child
+from api.models.game import Progress
 from api.services.base_service import convert_id, mongo_to_dict
 from ..models import parent
 
@@ -83,6 +84,28 @@ def get_selected_child(id):
     else:
         return {"error": "Nenhum filho selecionado"}, 404
     
+def create_initial_progress(child_id):
+    worlds_def = list(mongo.db.world_definitions.find().sort("order", 1))
+
+    worlds_progress = []
+
+    for index, world in enumerate(worlds_def):
+        worlds_progress.append({
+            "worldCode": world["code"],
+            "percentage": 0.0,
+            "completedPhases": [],
+            "unlocked": index == 0  # 🔥 só o primeiro desbloqueado
+        })
+
+    progress = Progress(
+        child=child_id,
+        worlds=worlds_progress,
+        dailyMissions=[],
+        medals=[],
+    )
+
+    return progress.to_dict()
+
 def register_children(parent_id, child):
     parent_oid = convert_id(parent_id)
     if not parent_oid:
@@ -95,6 +118,11 @@ def register_children(parent_id, child):
     child.parent = parent_oid
 
     result = mongo.db.children.insert_one(child.to_dict())
+    child_id = result.inserted_id
+
+    # ✅ cria progresso inicial
+    progress_doc = create_initial_progress(child_id)
+    mongo.db.progress.insert_one(progress_doc)
 
     # opcional: definir filho selecionado se não existir
     mongo.db.parents.update_one(
