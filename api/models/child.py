@@ -13,9 +13,7 @@ class Child(BaseModel):
     birthDate: Optional[datetime] = None
     profilePicture: str = ""
     avatar: str = ""
-    points: float = 0
-    ranking: int = 0
-    audio: bool = True
+    audioActive: bool = True
     rankingActive: bool = True
     parent: Optional[ObjectId] = None
     

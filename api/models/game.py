@@ -1,35 +1,15 @@
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
 from api.models.base_model import BaseModel
 
 @dataclass
-class Progress(BaseModel):
-    _id: Optional[ObjectId] = None
-    child: ObjectId = None
-
-    completedPhases: int = 0
-    worlds: List[Dict] = field(default_factory=list)
-
-@dataclass
-class Medal(BaseModel):
-    _id: Optional[ObjectId] = None
-    child: ObjectId = None
-
-    medalId: str = ""
-    unlockedAt: datetime = None
-    selected: bool = False
-
-@dataclass
-class Mission(BaseModel):
-    _id: Optional[ObjectId] = None
-    child: ObjectId = None
-
-    title: str = ""
-    description: str = ""
-    completed: bool = False
-    date: datetime = None
+class Phase(BaseModel):
+    code: str
+    name: str
+    order: int
+    type: str
 
 @dataclass
 class World(BaseModel):
@@ -37,21 +17,35 @@ class World(BaseModel):
     name: str = ""
     description: str = ""
     order: int = 0
-    phases: List[Dict] = field(default_factory=list)
+    phases: List[Phase] = field(default_factory=list)
 
 @dataclass
-class MedalDefinition(BaseModel):
-    _id: Optional[ObjectId] = None
-    name: str = ""
-    icon: str = ""
-    requirement: str = ""
+class WorldProgress(BaseModel):
+    worldCode: str
+    percentage: float = 0.0
+    completedPhases: List[str] = field(default_factory=list)
+    unlocked: bool = False
 
 @dataclass
-class Activity(BaseModel):
+class MedalUnlocked(BaseModel):
+    medalCode: ObjectId = ""
+    unlockedAt: datetime = None
+
+@dataclass
+class MissionProgress(BaseModel):
+    missionCode: ObjectId
+    completed: bool = False
+    assignedAt: datetime = None
+
+@dataclass
+class Progress(BaseModel):
     _id: Optional[ObjectId] = None
     child: ObjectId = None
 
-    type: str = ""  # "mission_completed", "medal_unlocked"
-    data: Dict = field(default_factory=dict)
-
-    createdAt: datetime = datetime.utcnow()
+    points: int = 0
+    completedPhases: int = 0
+    ranking: Optional[int] = None
+    selectedMedal: ObjectId = ""
+    worlds: List[WorldProgress] = field(default_factory=list)
+    dailyMissions: List[MissionProgress] = field(default_factory=list)
+    medals: List[MedalUnlocked] = field(default_factory=list)
