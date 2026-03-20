@@ -26,6 +26,15 @@ class ChildResources(Resource):
         result, status = children_service.edit_child(children_id, data)
         return make_response(jsonify(result), status)
     
+class ChildProgressResources(Resource):
+    @jwt_required()
+    def get(self):
+        child_id = get_jwt_identity()
+
+        result, status = children_service.get_child_progress(child_id)
+
+        return make_response(jsonify(result), status)
+    
 class UpdateChildrenScore(Resource): 
     @jwt_required()
     def put(self):
@@ -50,5 +59,6 @@ class RankingChildrenResources(Resource):
         return make_response(jsonify(ranking), 200)
 
 api.add_resource(ChildResources, '/child')
-api.add_resource(UpdateChildrenScore, '/child/complete-phase')
+api.add_resource(ChildProgressResources, '/child/progress')
+api.add_resource(UpdateChildrenScore, '/progress/complete-phase')
 api.add_resource(RankingChildrenResources, '/child/ranking')
