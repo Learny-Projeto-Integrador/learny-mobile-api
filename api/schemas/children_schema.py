@@ -11,15 +11,13 @@ class ChildrenSchema(ma.Schema):
     profilePicture = fields.Str(allow_none=True)
     avatar = fields.Str()
     birthDate = fields.DateTime(allow_none=True)
-    points = fields.Float(load_default=0)
-    ranking = fields.Int(load_default=0)
-    audio = fields.Bool(load_default=True)
+    audioActive = fields.Bool(load_default=True)
     rankingActive = fields.Bool(load_default=True)
     parent = ObjectIdField(allow_none=True)
 
     @pre_load
     def strip_whitespace(self, data, **kwargs):
-        string_fields = ["username", "name", "email", "password"]
+        string_fields = ["username", "name", "password"]
 
         for key in string_fields:
             if key in data and isinstance(data[key], str):

@@ -5,7 +5,7 @@ from marshmallow.validate import Length
 
 class ParentSchema(ma.Schema):
     _id = fields.Str()
-    profilePicture = fields.Str()
+    profilePicture = fields.Str(allow_none=True)
     username = fields.Str(required=True, validate=Length(min=1))
     password = fields.Str(required=True, load_only=True)
     name = fields.Str(required=True, validate=Length(min=1))
