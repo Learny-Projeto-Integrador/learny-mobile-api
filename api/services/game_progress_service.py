@@ -1,12 +1,13 @@
 from api import mongo
 from datetime import datetime
 
-def update_progress(child_id, world_code, phase_code):
+def update_progress(child_id, world_code, phase_code, points_earned):
     progress = mongo.db.progress.find_one({"child": child_id})
 
     if not progress:
         mongo.db.progress.insert_one({
             "child": child_id,
+            "points": points_earned,
             "completedPhases": 1,
             "worlds": [
                 {

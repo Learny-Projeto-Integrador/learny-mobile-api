@@ -36,6 +36,17 @@ def edit_child(id, new_data):
 
     return {'message': 'Dados alterados com sucesso'}, 200
     
+def get_child_progress(child_id):
+    progress = mongo.db.progress.find_one({"child": ObjectId(child_id)})
+
+    if not progress:
+        return {"error": "Não há progresso registrado para esta criança"}, 404
+
+    progress["_id"] = str(progress["_id"])
+    progress["child"] = str(progress["child"])
+
+    return progress, 200
+
 def get_ranking():
     criancas = mongo.db.children.find().sort("pontos", DESCENDING)
 
@@ -74,13 +85,8 @@ def complete_phase(child_id, phase_code, world_code):
     # 1. Pontos base
     points_earned = 10
 
-    mongo.db.children.update_one(
-        {"_id": child_oid},
-        {"$inc": {"points": points_earned}}
-    )
-
     # 2. Atualizar progresso
-    update_progress(child_oid, world_code, phase_code)
+    update_progress(child_oid, world_code, phase_code, points_earned)
 
     # 3. Verificar medalhas
     medals = check_and_unlock_medals(child_oid, world_code)
@@ -96,8 +102,8 @@ def complete_phase(child_id, phase_code, world_code):
 
     # bônus
     if bonus:
-        mongo.db.children.update_one(
-            {"_id": child_oid},
+        mongo.db.progress.update_one(
+            {"child": child_oid},
             {"$inc": {"points": bonus}}
         )
 
