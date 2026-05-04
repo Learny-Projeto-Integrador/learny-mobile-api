@@ -1,5 +1,4 @@
 from api import mongo
-from bson import ObjectId
 from pymongo import DESCENDING
 from api.services.game_progress_service import check_and_unlock_medals, check_missions, create_activity, update_progress
 from api.services.base_service import convert_id, mongo_to_dict
@@ -9,10 +8,10 @@ def get_child_by_id(id):
     if not child_oid:
         return {'error': 'ID inválido'}, 400
     
-    crianca = mongo.db.children.find_one({'_id': child_oid})
-    if crianca:
-        crianca = mongo_to_dict(crianca)
-        return crianca, 200
+    child = mongo.db.children.find_one({'_id': child_oid})
+    if child:
+        child = mongo_to_dict(child)
+        return child, 200
     else:
         return {"error": "Nenhum filho selecionado"}, 404
     
@@ -36,31 +35,48 @@ def edit_child(id, new_data):
 
     return {'message': 'Dados alterados com sucesso'}, 200
     
-def get_child_progress(child_id):
-    progress = mongo.db.progress.find_one({"child": ObjectId(child_id)})
+def get_child_progress(id):
+    child_oid = convert_id(id)
+    if not child_oid:
+        return {'error': 'ID inválido'}, 400
+    
+    progress = mongo.db.progress.find_one({"child": child_oid})
 
     if not progress:
         return {"error": "Não há progresso registrado para esta criança"}, 404
 
-    progress["_id"] = str(progress["_id"])
-    progress["child"] = str(progress["child"])
-
     return progress, 200
 
 def get_ranking():
-    criancas = mongo.db.children.find().sort("pontos", DESCENDING)
-
-    if not criancas:
-        return {'error': 'Dados das crianças não encontrados'}, 404
+    ranking_cursor = mongo.db.progress.aggregate([
+        {
+            "$lookup": {
+                "from": "children",
+                "localField": "child",
+                "foreignField": "_id",
+                "as": "childData"
+            }
+        },
+        {
+            "$unwind": "$childData"
+        },
+        {
+            "$sort": { "points": -1 }
+        }
+    ])
 
     ranking = []
-    for c in criancas:
+    
+    for c in ranking_cursor:
         ranking.append({
-            "id": str(c["_id"]),
-            "profilePicture": c.get("profilePicture", ""),
-            "name": c.get("name", ""),
+            "id": str(c["childData"]["_id"]),
+            "profilePicture": c["childData"].get("profilePicture", ""),
+            "name": c["childData"].get("name", ""),
             "points": c.get("points", 0)
         })
+
+    if not ranking:
+        return {'error': 'Dados das crianças não encontrados'}, 404
 
     return ranking
     

@@ -61,4 +61,4 @@ class RankingChildrenResources(Resource):
 api.add_resource(ChildResources, '/child')
 api.add_resource(ChildProgressResources, '/child/progress')
 api.add_resource(UpdateChildrenScore, '/progress/complete-phase')
-api.add_resource(RankingChildrenResources, '/child/ranking')
+api.add_resource(RankingChildrenResources, '/children/ranking')

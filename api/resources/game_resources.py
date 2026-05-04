@@ -13,11 +13,11 @@ class WorldsResource(Resource):
         result, status = game_service.get_worlds()
         return make_response(jsonify(result), status)
     
-class WorldPhasesResource(Resource):
+class WorldInfoResource(Resource):
     @jwt_required()
     def get(self, code):
-        result, status = game_service.get_world_phases(code)
+        result, status = game_service.get_world_info(code)
         return make_response(jsonify(result), status)
 
 api.add_resource(WorldsResource, '/game/worlds')
-api.add_resource(WorldPhasesResource, '/game/worlds/<string:code>/phases')
+api.add_resource(WorldInfoResource, '/game/worlds/<string:code>')

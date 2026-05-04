@@ -5,36 +5,34 @@ def insert_world_definitions():
         {
             "code": "WORLD_1",
             "name": "Dino's Forest",
+            "picture": "https://pi-learny.s3.us-east-1.amazonaws.com/worlds/banners/world1.png",
             "description": "Floresta do Dino",
             "order": 1,
-            "phases": [
-                {"code": "W1_PHASE_1", "name": "Fase 1", "order": 1},
-                {"code": "W1_PHASE_2", "name": "Fase 2", "order": 2},
-                {"code": "W1_PHASE_3", "name": "Fase 3", "order": 3},
-            ]
+            "color": "#329F00",
         },
         {
             "code": "WORLD_2",
             "name": "Jigsaw World",
+            "picture": "https://pi-learny.s3.us-east-1.amazonaws.com/worlds/banners/world2.png",
             "description": "Mundo quebra-cabeça",
             "order": 2,
-            "phases": [
-                {"code": "W2_PHASE_1", "name": "Fase 1", "order": 1},
-            ]
+            "color": "#25A6DE",
         },
         {
             "code": "WORLD_3",
             "name": "Space Realm",
+            "picture": "https://pi-learny.s3.us-east-1.amazonaws.com/worlds/banners/world3.png",
             "description": "Reino Espacial",
             "order": 3,
-            "phases": []
+            "color": "#B060C2",
         },
         {
             "code": "WORLD_4",
             "name": "Pop Party",
+            "picture": "https://pi-learny.s3.us-east-1.amazonaws.com/worlds/banners/world4.png",
             "description": "Festa Pop",
             "order": 4,
-            "phases": []
+            "color": "#B82A38",
         },
     ]
 
@@ -42,6 +40,77 @@ def insert_world_definitions():
         mongo.db.world_definitions.update_one(
             {"code": world["code"]},
             {"$setOnInsert": world},
+            upsert=True
+        )
+
+def insert_module_definitions():
+    modules = [
+        {
+            "code": "W1_MODULE_1",
+            "worldCode": "WORLD_1", 
+            "name": "Primeiro Módulo",
+            "description": "Descrição do primeiro módulo",
+            "order": 1,
+        },
+        {
+            "code": "W1_MODULE_2",
+            "worldCode": "WORLD_1", 
+            "name": "Segundo Módulo",
+            "description": "Descrição do primeiro módulo",
+            "order": 1,
+        },
+        {
+            "code": "W1_MODULE_3",
+            "worldCode": "WORLD_1", 
+            "name": "Terceiro Módulo",
+            "description": "Descrição do terceiro módulo",
+            "order": 1,
+        },
+    ]
+
+    for module in modules:
+        mongo.db.module_definitions.update_one(
+            {"code": module["code"]},
+            {"$setOnInsert": module},
+            upsert=True
+        )
+
+def insert_phase_definitions():
+    phases = [
+        {
+            "code": "W1_M1_PHASE_1",
+            "moduleCode": "W1_MODULE_1", 
+            "name": "Fase 1", 
+            "order": 1, 
+            "type": "common"
+        },
+        {
+            "code": "W1_M1_PHASE_2",
+            "moduleCode": "W1_MODULE_1", 
+            "name": "Fase 2", 
+            "order": 2, 
+            "type": "common"
+        },
+        {
+            "code": "W1_M1_PHASE_3",
+            "moduleCode": "W1_MODULE_1", 
+            "name": "Fase 3", 
+            "order": 3, 
+            "type": "common"
+        },
+        {
+            "code": "W1_M1_PHASE_4",
+            "moduleCode": "W1_MODULE_1", 
+            "name": "Fase 4", 
+            "order": 3, 
+            "type": "boss"
+        },
+    ]
+
+    for phase in phases:
+        mongo.db.phase_definitions.update_one(
+            {"code": phase["code"]},
+            {"$setOnInsert": phase},
             upsert=True
         )
 
@@ -105,6 +174,8 @@ def insert_mission_definitions():
 
 def insert_base_data():
     insert_world_definitions()
+    insert_module_definitions()
+    insert_phase_definitions()
     insert_medal_definitions()
     insert_mission_definitions()
     
