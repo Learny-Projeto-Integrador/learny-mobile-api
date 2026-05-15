@@ -1,6 +1,5 @@
 from api import mongo
-from pymongo import DESCENDING
-from api.services.game_progress_service import check_and_unlock_medals, check_missions, create_activity, update_progress
+from api.services.game_progress_service import check_missions, create_activity, update_progress
 from api.services.base_service import convert_id, mongo_to_dict
         
 def get_child_by_id(id):
@@ -79,56 +78,71 @@ def get_ranking():
         return {'error': 'Dados das crianças não encontrados'}, 404
 
     return ranking
-    
-def edit_rankings():
-    criancas = list(mongo.db.children.find().sort('points', -1))
-
-    for index, crianca in enumerate(criancas):
-        mongo.db.children.update_one(
-            {'_id': crianca['_id']},
-            {'$set': {'ranking': index + 1}}
-        )
    
-def complete_phase(child_id, phase_code, world_code):
+from datetime import datetime
+
+def complete_phase(child_id, data):
     child_oid = convert_id(child_id)
+
     if not child_oid:
         return {"error": "ID inválido"}, 400
 
     child = mongo.db.children.find_one({"_id": child_oid})
+
     if not child:
         return {"error": "Criança não encontrada"}, 404
 
-    # 1. Pontos base
-    points_earned = 10
+    # -----------------------------------
+    # VERIFICA SE JÁ CONCLUIU FASE HOJE
+    # -----------------------------------
 
-    # 2. Atualizar progresso
-    update_progress(child_oid, world_code, phase_code, points_earned)
+    now = datetime.now()
 
-    # 3. Verificar medalhas
-    medals = check_and_unlock_medals(child_oid, world_code)
+    start_of_day = datetime(
+        now.year,
+        now.month,
+        now.day,
+        0, 0, 0
+    )
 
-    # 4. Verificar missões
-    mission_result, bonus = check_missions(child_oid, phase_code)
+    end_of_day = datetime(
+        now.year,
+        now.month,
+        now.day,
+        23, 59, 59
+    )
 
-    # 5. Log de atividade
-    create_activity(child_oid, "phase_completed", {
-        "phaseCode": phase_code,
-        "worldCode": world_code
+    already_completed_today = mongo.db.activities.find_one({
+        "child": child_oid,
+        "type": "phase_completed",
+        "createdAt": {
+            "$gte": start_of_day,
+            "$lte": end_of_day
+        }
     })
 
-    # bônus
-    if bonus:
-        mongo.db.progress.update_one(
-            {"child": child_oid},
-            {"$inc": {"points": bonus}}
-        )
+    should_increment_streak = not already_completed_today
 
-    updated_child = mongo.db.children.find_one({"_id": child_oid})
+    # -----------------------------------
+    # ATUALIZA PROGRESSO
+    # -----------------------------------
+
+    update_progress(
+        child_oid,
+        data,
+        increment_streak=should_increment_streak
+    )
+
+    # -----------------------------------
+    # LOG DE ATIVIDADE
+    # -----------------------------------
+
+    create_activity(child_oid, "phase_completed", {
+        "worldCode": data.get("worldCode"),
+        "moduleCode": data.get("moduleCode"),
+        "phaseCode": data.get("phaseCode"),
+    })
 
     return {
         "message": "Fase concluída com sucesso",
-        "pointsEarned": points_earned + bonus,
-        "medalsUnlocked": medals,
-        "mission": mission_result,
-        "child": mongo_to_dict(updated_child)
     }, 200

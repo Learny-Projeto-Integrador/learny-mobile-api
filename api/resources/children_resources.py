@@ -4,9 +4,10 @@ from flask import make_response, jsonify, request
 from api.utils.validate_data import handle_schema
 from ..services import children_service
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from ..schemas.children_schema import ChildrenSchema
+from ..schemas.children_schema import ChildrenSchema, ChildrenPhaseSchema
 
 schema = ChildrenSchema()
+phase_schema = ChildrenPhaseSchema()
 
 class ChildResources(Resource):
     @jwt_required()
@@ -38,16 +39,17 @@ class ChildProgressResources(Resource):
 class UpdateChildrenScore(Resource): 
     @jwt_required()
     def put(self):
-        children_id = get_jwt_identity()
-        data = request.json
+        child_id = get_jwt_identity()
 
-        phase_code = data.get("phaseCode")
-        world_code = data.get("worldCode")
+        data, errors = handle_schema(phase_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+        
+        print(data)
 
         result, status = children_service.complete_phase(
-            children_id,
-            phase_code,
-            world_code
+            child_id,
+            data
         )
 
         return make_response(jsonify(result), status)
@@ -60,5 +62,5 @@ class RankingChildrenResources(Resource):
 
 api.add_resource(ChildResources, '/child')
 api.add_resource(ChildProgressResources, '/child/progress')
-api.add_resource(UpdateChildrenScore, '/progress/complete-phase')
+api.add_resource(UpdateChildrenScore, '/child/progress/complete-phase')
 api.add_resource(RankingChildrenResources, '/children/ranking')

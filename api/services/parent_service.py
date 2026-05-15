@@ -94,14 +94,18 @@ def create_initial_progress(child_id):
             "worldCode": world["code"],
             "percentage": 0.0,
             "completedPhases": [],
-            "unlocked": index == 0  # 🔥 só o primeiro desbloqueado
+            "unlocked": index == 0
         })
 
     progress = Progress(
         child=child_id,
         worlds=worlds_progress,
         dailyMissions=[],
-        medals=[],
+        streak=0,
+        characters=[],
+        stellarPoints=0,
+        coins=0,
+        selectedCharacter=None
     )
 
     return progress.to_dict()

@@ -12,7 +12,6 @@ class Child(BaseModel):
     password: str = ""
     birthDate: Optional[datetime] = None
     profilePicture: str = ""
-    avatar: str = ""
     audioActive: bool = True
     rankingActive: bool = True
     parent: Optional[ObjectId] = None

@@ -28,3 +28,14 @@ class ChildrenSchema(ma.Schema):
     @post_load
     def make_Child(self, data, **kwargs):
         return Child(**data)
+    
+class ChildrenPhaseSchema(ma.Schema):
+    _id = ObjectIdField(dump_only=True)
+    points = fields.Float(required=True)
+    coins = fields.Int(required=True, load_only=True)
+    percentage = fields.Int(required=True)
+    time = fields.Str(required=True)
+    worldCode = fields.Str(required=True)
+    moduleCode = fields.Str(required=True)
+    phaseCode = fields.Str(required=True)
+
