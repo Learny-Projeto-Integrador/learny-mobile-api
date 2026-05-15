@@ -57,14 +57,14 @@ def insert_module_definitions():
             "worldCode": "WORLD_1", 
             "name": "Segundo Módulo",
             "description": "Descrição do primeiro módulo",
-            "order": 1,
+            "order": 2,
         },
         {
             "code": "W1_MODULE_3",
             "worldCode": "WORLD_1", 
             "name": "Terceiro Módulo",
             "description": "Descrição do terceiro módulo",
-            "order": 1,
+            "order": 3,
         },
     ]
 
@@ -114,32 +114,46 @@ def insert_phase_definitions():
             upsert=True
         )
 
-def insert_medal_definitions():
-    medals = [
+def insert_character_definitions():
+    characters = [
         {
-            "code": "FIRST_PHASE",
-            "name": "Iniciando!",
-            "description": "Você concluiu a fase 01",
-            "worldCode": "WORLD_1"
+            "code": "ANGRYSSAUR",
+            "name": "Angryssaur",
+            "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/angryssaur.png",
+            "description": "Descrição do personagem Angryssaur",
+            "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
+            "moduleCode": "W1_MODULE_1"
         },
         {
-            "code": "THREE_PHASES",
-            "name": "A todo o vapor!",
-            "description": "Você concluiu 3 fases",
-            "worldCode": "WORLD_1"
+            "code": "JOHNY_HERO",
+            "name": "Johny Hero",
+            "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/johny-hero.png",
+            "description": "Descrição do personagem Johny Hero",
+            "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
+            "moduleCode": "W1_MODULE_2"
         },
         {
-            "code": "WORLD_1_COMPLETE",
-            "name": "Desvendando",
-            "description": "Você concluiu o mundo 01",
-            "worldCode": "WORLD_1"
+            "code": "AYLIEN",
+            "name": "Aylien",
+            "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/aylien.png",
+            "description": "Descrição do personagem Aylien",
+            "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
+            "moduleCode": "W1_MODULE_3"
+        },
+        {
+            "code": "RAYCOON",
+            "name": "Raycoon",
+            "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/raycoon.png",
+            "description": "Descrição do personagem Raycoon",
+            "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
+            "moduleCode": "W1_MODULE_3"
         },
     ]
 
-    for medal in medals:
-        mongo.db.medal_definitions.update_one(
-            {"code": medal["code"]},
-            {"$setOnInsert": medal},
+    for character in characters:
+        mongo.db.character_definitions.update_one(
+            {"code": character["code"]},
+            {"$setOnInsert": character},
             upsert=True
         )
 
@@ -176,7 +190,7 @@ def insert_base_data():
     insert_world_definitions()
     insert_module_definitions()
     insert_phase_definitions()
-    insert_medal_definitions()
+    insert_character_definitions()
     insert_mission_definitions()
     
 

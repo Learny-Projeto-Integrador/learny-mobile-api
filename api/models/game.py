@@ -27,8 +27,17 @@ class WorldProgress(BaseModel):
     unlocked: bool = False
 
 @dataclass
-class MedalUnlocked(BaseModel):
-    medalCode: ObjectId = ""
+class Character(BaseModel):
+    code: str = ""
+    name: str = ""
+    image: str = ""
+    description: str = ""
+    unlockDescription: str = ""
+    moduleCode: str = ""
+
+@dataclass
+class CharacterUnlocked(BaseModel):
+    characterCode: ObjectId = ""
     unlockedAt: datetime = None
 
 @dataclass
@@ -43,9 +52,10 @@ class Progress(BaseModel):
     child: ObjectId = None
 
     points: int = 0
-    completedPhases: int = 0
-    ranking: Optional[int] = None
-    selectedMedal: ObjectId = ""
+    stellarPoints: int = 0
+    coins: int = 0
+    streak: int = 0
+    selectedCharacter: ObjectId = ""
     worlds: List[WorldProgress] = field(default_factory=list)
     dailyMissions: List[MissionProgress] = field(default_factory=list)
-    medals: List[MedalUnlocked] = field(default_factory=list)
+    characters: List[CharacterUnlocked] = field(default_factory=list)
