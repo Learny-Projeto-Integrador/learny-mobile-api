@@ -46,3 +46,11 @@ def get_world_info(code):
     world["modules"] = modules
 
     return world, 200
+
+def get_characters():
+    characters = mongo.db.character_definitions.find()
+    if characters:
+        characters = mongo_to_dict(characters)
+        return characters, 200
+    else:
+        return {"error": "Nenhum personagem encontrado no catálogo"}, 404
