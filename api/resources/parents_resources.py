@@ -95,9 +95,18 @@ class ParentChildActivityResources(Resource):
         result, status = parent_service.get_child_activity(id)
 
         return make_response(jsonify(result), status)
+    
+class ParentChildNotificationResources(Resource): 
+    @jwt_required()
+    def post(self, id):
+        parent_id = get_jwt_identity()
+        result, status = parent_service.send_notification(id, parent_id, request.json)
+
+        return make_response(jsonify(result), status)
 
 api.add_resource(ParentResources, '/parents')
 api.add_resource(ParentChildResources, '/parents/child/<string:id>')
 api.add_resource(ParentChildActivityResources, '/parents/child/<string:id>/activity')
+api.add_resource(ParentChildNotificationResources, '/parents/child/<string:id>/notifications')
 api.add_resource(ParentChildrenResources, '/parents/children')
 api.add_resource(SelectedChildResources, '/parents/child/selected')

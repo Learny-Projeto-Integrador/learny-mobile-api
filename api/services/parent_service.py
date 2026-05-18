@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from api import mongo
 from werkzeug.security import generate_password_hash
 from api.models import child
@@ -249,3 +251,44 @@ def edit_selected_children(parent_id, child_id):
     child = mongo.db.children.find_one({"_id": child_oid})
 
     return mongo_to_dict(child), 200
+
+def send_notification(child_id, parent_id, data):
+    child_oid = convert_id(child_id)
+    parent_oid = convert_id(parent_id)
+
+    if not child_oid:
+        return {"error": "ID da criança inválido"}, 400
+    
+    if not parent_oid:
+        return {"error": "ID do responsável inválido"}, 400
+
+    child = mongo.db.children.find_one({"_id": child_oid})
+    parent = mongo.db.parents.find_one({"_id": parent_oid})
+
+    if not child:
+        return {"error": "Criança não encontrada"}, 404
+    
+    if not parent:
+        return {"error": "Responsável não encontrado"}, 404
+    
+    if not data.get("type"):
+        return { "error": "Informe o tipo de notificação" }, 400
+    
+    if not data.get("phaseCode"):
+        return { "error": "Código da fase não informado" }, 400
+
+    mongo.db.notifications.insert_one({
+        "child": child_oid,
+        "parent": {
+            "_id": parent_oid,
+            "name": parent["name"]
+        },
+        "phaseCode": data.get("phaseCode"),
+        "type": data.get("type"),
+        "description": data.get("description"),
+        "createdAt": datetime.now()
+    })
+    
+    return {
+        "message": "Notificação registrada com sucesso",
+    }, 200

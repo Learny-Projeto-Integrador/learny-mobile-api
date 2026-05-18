@@ -64,3 +64,10 @@ class Progress(BaseModel):
     worlds: List[WorldProgress] = field(default_factory=list)
     dailyMissions: List[MissionProgress] = field(default_factory=list)
     characters: List[CharacterUnlocked] = field(default_factory=list)
+    
+@dataclass
+class Notification(BaseModel):
+    child: ObjectId
+    type: bool = False
+    message: str=""
+    createdAt: datetime = None
