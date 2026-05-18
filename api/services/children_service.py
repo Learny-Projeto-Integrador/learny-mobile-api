@@ -242,10 +242,9 @@ def get_notifications(id):
     child_oid = convert_id(id)
     if not child_oid:
         return {'error': 'ID inválido'}, 400
-    
-    notifications = mongo.db.notifications.find({'child': child_oid})
-    if notifications:
-        notifications = mongo_to_dict(notifications)
-        return notifications, 200
-    else:
+
+    notifications = list(mongo.db.notifications.find({'child': child_oid}))
+    if not notifications:
         return {"error": "Sem notificações para esse usuario"}, 404
+
+    return mongo_to_dict(notifications), 200

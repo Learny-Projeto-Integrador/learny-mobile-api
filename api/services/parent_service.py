@@ -45,10 +45,14 @@ def edit_parent(id, new_data: parent.Parent):
         return {'error': 'Responsável não encontrado'}, 404
 
 def delete_parent(id):
-    user_data = mongo.db.parents.find_one({'_id': id})
+    parent_oid = convert_id(id)
+    if not parent_oid:
+        return {'error': 'ID inválido'}, 400
+
+    user_data = mongo.db.parents.find_one({'_id': parent_oid})
 
     if user_data:
-        mongo.db.parents.delete_one({'_id': id})
+        mongo.db.parents.delete_one({'_id': parent_oid})
         return {'message': 'Conta excluida com sucesso'}, 200
     else:
         return {'error': 'Responsável não encontrado'}, 404
@@ -164,7 +168,7 @@ def create_initial_progress(child_id):
 
     return progress.to_dict()
 
-def register_children(parent_id, child):
+def register_child(parent_id, child):
     parent_oid = convert_id(parent_id)
     if not parent_oid:
         return {'error': 'ID inválido'}, 400

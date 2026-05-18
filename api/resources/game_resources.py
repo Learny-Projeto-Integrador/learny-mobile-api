@@ -30,11 +30,6 @@ class CharacterInfoResource(Resource):
     def get(self, code):
         result, status = game_service.get_character_info(code)
         return make_response(jsonify(result), status)
-    
-    @jwt_required()
-    def put(self, code):
-        result, status = game_service.change_selected_character(code)
-        return make_response(jsonify(result), status)
 
 api.add_resource(WorldsResource, '/game/worlds')
 api.add_resource(WorldInfoResource, '/game/worlds/<string:code>')

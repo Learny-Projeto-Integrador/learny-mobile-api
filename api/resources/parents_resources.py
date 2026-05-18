@@ -78,7 +78,7 @@ class ParentChildrenResources(Resource):
         if errors:
             return {"error": errors}, 400
         
-        result, status = parent_service.register_children(parent_id, data)
+        result, status = parent_service.register_child(parent_id, data)
         return make_response(jsonify(result), status)
     
 class SelectedChildResources(Resource):
