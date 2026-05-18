@@ -19,12 +19,8 @@ class ChildResources(Resource):
     @jwt_required()
     def put(self):
         children_id = get_jwt_identity()
-        
-        data, errors = handle_schema(schema, request.json)
-        if errors:
-            return {"error": errors}, 400
-        
-        result, status = children_service.edit_child(children_id, data)
+             
+        result, status = children_service.edit_child(children_id, request.json)
         return make_response(jsonify(result), status)
     
 class ChildProgressResources(Resource):
@@ -33,6 +29,14 @@ class ChildProgressResources(Resource):
         child_id = get_jwt_identity()
 
         result, status = children_service.get_child_progress(child_id)
+
+        return make_response(jsonify(result), status)
+    
+    @jwt_required()
+    def put(self):
+        child_id = get_jwt_identity()
+
+        result, status = children_service.edit_child_progress(child_id, request.json)
 
         return make_response(jsonify(result), status)
     
@@ -45,7 +49,6 @@ class UpdateChildrenScore(Resource):
         if errors:
             return {"error": errors}, 400
         
-        print(data)
 
         result, status = children_service.complete_phase(
             child_id,

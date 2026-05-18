@@ -18,6 +18,7 @@ class World(BaseModel):
     description: str = ""
     order: int = 0
     phases: List[Phase] = field(default_factory=list)
+    rewardCharacterCode: str = ""
 
 @dataclass
 class WorldProgress(BaseModel):
@@ -31,13 +32,17 @@ class Character(BaseModel):
     code: str = ""
     name: str = ""
     image: str = ""
+    effect: str = ""
+    tags: List[str] = field(default_factory=list)
     description: str = ""
     unlockDescription: str = ""
     moduleCode: str = ""
 
 @dataclass
 class CharacterUnlocked(BaseModel):
-    characterCode: ObjectId = ""
+    characterCode: str = ""
+    level: int = 0
+    characterPoints: int = 0
     unlockedAt: datetime = None
 
 @dataclass
@@ -55,7 +60,7 @@ class Progress(BaseModel):
     stellarPoints: int = 0
     coins: int = 0
     streak: int = 0
-    selectedCharacter: ObjectId = ""
+    selectedCharacter: str = ""
     worlds: List[WorldProgress] = field(default_factory=list)
     dailyMissions: List[MissionProgress] = field(default_factory=list)
     characters: List[CharacterUnlocked] = field(default_factory=list)

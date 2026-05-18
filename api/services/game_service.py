@@ -54,3 +54,11 @@ def get_characters():
         return characters, 200
     else:
         return {"error": "Nenhum personagem encontrado no catálogo"}, 404
+    
+def get_character_info(code):
+    character = mongo.db.character_definitions.find_one({'code': code}, {'_id': 0})
+
+    if not character:
+        return {"error": "Nenhum personagem encontrado com o código especificado"}, 404
+
+    return character, 200

@@ -9,6 +9,7 @@ def insert_world_definitions():
             "description": "Floresta do Dino",
             "order": 1,
             "color": "#329F00",
+            "rewardCharacterCode": "ANGRYSSAUR", 
         },
         {
             "code": "WORLD_2",
@@ -17,6 +18,7 @@ def insert_world_definitions():
             "description": "Mundo quebra-cabeça",
             "order": 2,
             "color": "#25A6DE",
+            "rewardCharacterCode": "JOHNY_HERO",
         },
         {
             "code": "WORLD_3",
@@ -25,6 +27,7 @@ def insert_world_definitions():
             "description": "Reino Espacial",
             "order": 3,
             "color": "#B060C2",
+            "rewardCharacterCode": "AYLIEN",
         },
         {
             "code": "WORLD_4",
@@ -33,6 +36,7 @@ def insert_world_definitions():
             "description": "Festa Pop",
             "order": 4,
             "color": "#B82A38",
+            "rewardCharacterCode": "RAYCOON",
         },
     ]
 
@@ -53,17 +57,17 @@ def insert_module_definitions():
             "order": 1,
         },
         {
-            "code": "W1_MODULE_2",
-            "worldCode": "WORLD_1", 
-            "name": "Segundo Módulo",
+            "code": "W2_MODULE_1",
+            "worldCode": "WORLD_2", 
+            "name": "Primeiro Módulo",
             "description": "Descrição do primeiro módulo",
             "order": 2,
         },
         {
-            "code": "W1_MODULE_3",
-            "worldCode": "WORLD_1", 
-            "name": "Terceiro Módulo",
-            "description": "Descrição do terceiro módulo",
+            "code": "W3_MODULE_1",
+            "worldCode": "WORLD_3", 
+            "name": "Primeiro Módulo",
+            "description": "Descrição do primeiro módulo",
             "order": 3,
         },
     ]
@@ -121,6 +125,8 @@ def insert_character_definitions():
             "name": "Angryssaur",
             "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/angryssaur.png",
             "description": "Descrição do personagem Angryssaur",
+            "effect": "Multiplica seus pontos da partida por 2.0x",
+            "tags": ["Ranqueado", "Moedas"],
             "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
             "moduleCode": "W1_MODULE_1"
         },
@@ -129,6 +135,8 @@ def insert_character_definitions():
             "name": "Johny Hero",
             "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/johny-hero.png",
             "description": "Descrição do personagem Johny Hero",
+            "effect": "Multiplica seus pontos da partida por 2.0x",
+            "tags": ["Ranqueado", "Moedas"],
             "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
             "moduleCode": "W1_MODULE_2"
         },
@@ -137,6 +145,8 @@ def insert_character_definitions():
             "name": "Aylien",
             "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/aylien.png",
             "description": "Descrição do personagem Aylien",
+            "effect": "Multiplica seus pontos da partida por 2.0x",
+            "tags": ["Ranqueado", "Moedas"],
             "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
             "moduleCode": "W1_MODULE_3"
         },
@@ -145,6 +155,8 @@ def insert_character_definitions():
             "name": "Raycoon",
             "image": "https://pi-learny.s3.us-east-1.amazonaws.com/characters/raycoon.png",
             "description": "Descrição do personagem Raycoon",
+            "effect": "Multiplica seus pontos da partida por 2.0x",
+            "tags": ["Ranqueado", "Moedas"],
             "unlockDescription": "Desbloqueado ao concluir a fase 01 do mundo 01",
             "moduleCode": "W1_MODULE_3"
         },

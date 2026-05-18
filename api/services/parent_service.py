@@ -6,7 +6,11 @@ from api.services.base_service import convert_id, mongo_to_dict
 from ..models import parent
 
 def get_parent_by_id(id):
-    user_data = mongo.db.parents.find_one({'_id': id})
+    parent_oid = convert_id(id)
+    if not parent_oid:
+        return {'error': 'ID inválido'}, 400
+    
+    user_data = mongo.db.parents.find_one({'_id': parent_oid})
 
     if user_data:
         return user_data, 200
@@ -70,19 +74,67 @@ def get_child_by_id(id):
     
 def get_selected_child(id):
     parent_oid = convert_id(id)
+
     if not parent_oid:
         return {'error': 'ID inválido'}, 400
 
-    pai = mongo.db.parents.find_one({'_id': parent_oid})
-    if not pai:
+    parent = mongo.db.parents.find_one({
+        '_id': parent_oid
+    })
+
+    if not parent:
         return {'error': 'Responsável não encontrado'}, 404
 
-    crianca = mongo.db.children.find_one({'_id': pai.get("selectedChild")})
-    if crianca:
-        crianca = mongo_to_dict(crianca)
-        return crianca, 200
-    else:
-        return {"error": "Nenhum filho selecionado"}, 404
+    selected_child = parent.get("selectedChild")
+
+    if not selected_child:
+        return {
+            "error": "Nenhum filho selecionado"
+        }, 404
+
+    child = mongo.db.children.find_one({
+        '_id': selected_child
+    })
+
+    if not child:
+        return {
+            "error": "Filho não encontrado"
+        }, 404
+
+    child_progress = mongo.db.progress.find_one({
+        'child': selected_child
+    })
+
+    # -----------------------------------
+    # SERIALIZA
+    # -----------------------------------
+
+    child_data = mongo_to_dict(child)
+
+    progress_data = (
+        mongo_to_dict(child_progress)
+        if child_progress
+        else {}
+    )
+
+    # -----------------------------------
+    # REMOVE CAMPOS DESNECESSÁRIOS
+    # -----------------------------------
+
+    progress_data.pop("_id", None)
+
+    progress_data.pop("child", None)
+
+    # -----------------------------------
+    # MERGE
+    # -----------------------------------
+
+    merged_data = {
+        **child_data,
+        **progress_data
+    }
+
+    return merged_data, 200
     
 def create_initial_progress(child_id):
     worlds_def = list(mongo.db.world_definitions.find().sort("order", 1))
@@ -130,7 +182,7 @@ def register_children(parent_id, child):
 
     # opcional: definir filho selecionado se não existir
     mongo.db.parents.update_one(
-        {"_id": parent_oid, "selectedChild": None},
+        {"_id": parent_oid, "selectedChild": None or ""},
         {"$set": {"selectedChild": result.inserted_id}}
     )
 
@@ -154,21 +206,6 @@ def edit_child(id, new_data: child.Child):
     else:
         return {'error': 'Erro ao editar o filho'}, 500
     
-def edit_child_status(id, new_data):
-    child_oid = convert_id(id)
-    if not child_oid:
-        return {'error': 'ID inválido'}, 400
-    
-    result = mongo.db.children.update_one(
-        {'_id': child_oid},
-        {'$set': new_data}
-    )
-
-    if result.modified_count > 0:
-        return {'message': 'Status do filho alterado com sucesso'}, 200
-    else:
-        return {'error': 'Erro ao editar o status filho'}, 500
-    
 def delete_child(child_id, parent_id):
     child_oid = convert_id(child_id)
     parent_oid = convert_id(parent_id)
@@ -187,6 +224,18 @@ def delete_child(child_id, parent_id):
     mongo.db.children.delete_one({"_id": child_oid})
 
     return {"message": "Filho removido"}, 200
+
+def get_child_activity(id):
+    child_oid = convert_id(id)
+    if not child_oid:
+        return {'error': 'ID inválido'}, 400
+    
+    activity = mongo.db.activities.find({"child": child_oid})
+
+    if not activity:
+        return {"error": "Não há progresso registrado para esta criança"}, 404
+
+    return activity, 200
 
 def edit_selected_children(parent_id, child_id):
     parent_oid = convert_id(parent_id)

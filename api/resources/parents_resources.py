@@ -1,5 +1,3 @@
-from unittest import result
-
 from flask_restful import Resource
 from api import api
 from flask import make_response, jsonify, request
@@ -10,7 +8,7 @@ from ..services import parent_service
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 parent_schema = ParentSchema()
-children_schema = ChildrenSchema()
+child_schema = ChildrenSchema()
 
 class ParentResources(Resource):
     @jwt_required()
@@ -44,25 +42,7 @@ class ParentResources(Resource):
         result, status = parent_service.delete_parent(parent_id)
         return make_response(jsonify(result), status)
     
-class ChildrenResources(Resource):
-    @jwt_required()
-    def get(self):
-        parent_id = get_jwt_identity()
-        result, status = parent_service.get_all_children(parent_id)
-        return make_response(jsonify(result), status)
-
-    @jwt_required()
-    def post(self):
-        parent_id = get_jwt_identity()
-
-        data, errors = handle_schema(children_schema, request.json)
-        if errors:
-            return {"error": errors}, 400
-        
-        result, status = parent_service.register_children(parent_id, data)
-        return make_response(jsonify(result), status)
-    
-class ChildrenDetailResources(Resource):
+class ParentChildResources(Resource):
     @jwt_required()
     def get(self, id):
         result, status = parent_service.get_child_by_id(id)
@@ -70,7 +50,7 @@ class ChildrenDetailResources(Resource):
 
     @jwt_required()
     def put(self, id):
-        data, errors = handle_schema(children_schema, request.json)
+        data, errors = handle_schema(child_schema, request.json)
         if errors:
             return {"error": errors}, 400
 
@@ -82,32 +62,42 @@ class ChildrenDetailResources(Resource):
         parent_id = get_jwt_identity()
         result, status = parent_service.delete_child(id, parent_id)
         return make_response(jsonify(result), status)
-
-class EditStatusResources(Resource):
+    
+class ParentChildrenResources(Resource):
     @jwt_required()
-    def put(self, id):
-        data = request.json
-        
-        result, status = parent_service.edit_child_status(id, data)
+    def get(self):
+        parent_id = get_jwt_identity()
+        result, status = parent_service.get_all_children(parent_id)
         return make_response(jsonify(result), status)
 
-class SelectedChildrenResources(Resource):
+    @jwt_required()
+    def post(self):
+        parent_id = get_jwt_identity()
+
+        data, errors = handle_schema(child_schema, request.json)
+        if errors:
+            return {"error": errors}, 400
+        
+        result, status = parent_service.register_children(parent_id, data)
+        return make_response(jsonify(result), status)
+    
+class SelectedChildResources(Resource):
     @jwt_required()
     def get(self):
         parent_id = get_jwt_identity()
         result, status = parent_service.get_selected_child(parent_id)
         return make_response(jsonify(result), status)
-
+    
+class ParentChildActivityResources(Resource):
     @jwt_required()
-    def put(self):
-        parent_id = get_jwt_identity()
-        child_id = request.json.get("id")
+    def get(self, id):
 
-        result, status = parent_service.edit_selected_children(parent_id, child_id)
+        result, status = parent_service.get_child_activity(id)
+
         return make_response(jsonify(result), status)
 
 api.add_resource(ParentResources, '/parents')
-api.add_resource(ChildrenResources, '/parents/children')
-api.add_resource(ChildrenDetailResources, '/parents/children/<string:id>')
-api.add_resource(EditStatusResources, '/parents/children/<string:id>/status')
-api.add_resource(SelectedChildrenResources, '/parents/selected-child')
+api.add_resource(ParentChildResources, '/parents/child/<string:id>')
+api.add_resource(ParentChildActivityResources, '/parents/child/<string:id>/activity')
+api.add_resource(ParentChildrenResources, '/parents/children')
+api.add_resource(SelectedChildResources, '/parents/child/selected')

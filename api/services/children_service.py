@@ -33,6 +33,96 @@ def edit_child(id, new_data):
         }, 200
 
     return {'message': 'Dados alterados com sucesso'}, 200
+
+def edit_child_progress(id, new_data):
+    child_oid = convert_id(id)
+
+    if not child_oid:
+        return {"error": "ID inválido"}, 400
+
+    progress = mongo.db.progress.find_one({
+        "child": child_oid
+    })
+
+    if not progress:
+        return {"error": "Progresso não encontrado"}, 404
+
+    # -----------------------------------
+    # CAMPOS INCREMENTÁVEIS
+    # -----------------------------------
+
+    incrementable_fields = [
+        "coins",
+        "stellarPoints",
+        "points",
+        "streak"
+    ]
+
+    inc_data = {}
+
+    for field in incrementable_fields:
+        if field in new_data:
+            inc_data[field] = int(new_data[field])
+
+    # -----------------------------------
+    # VALIDAÇÃO DE COINS
+    # -----------------------------------
+
+    if "coins" in inc_data:
+        coins_change = inc_data["coins"]
+
+        if coins_change < 0:
+            coins_cost = abs(coins_change)
+
+            if progress.get("coins", 0) < coins_cost:
+                return {
+                    "error": "Coins insuficientes"
+                }, 400
+
+    # -----------------------------------
+    # CAMPOS NORMAIS
+    # -----------------------------------
+
+    set_data = {}
+
+    for key, value in new_data.items():
+        if key not in incrementable_fields:
+            set_data[key] = value
+
+    # -----------------------------------
+    # MONTA UPDATE
+    # -----------------------------------
+
+    update_query = {}
+
+    if inc_data:
+        update_query["$inc"] = inc_data
+
+    if set_data:
+        update_query["$set"] = set_data
+
+    if not update_query:
+        return {
+            "error": "Nenhum dado válido enviado"
+        }, 400
+
+    # -----------------------------------
+    # UPDATE
+    # -----------------------------------
+
+    result = mongo.db.progress.update_one(
+        {"child": child_oid},
+        update_query
+    )
+
+    if result.matched_count == 0:
+        return {
+            "error": "Dados de progresso não encontrados"
+        }, 404
+
+    return {
+        "message": "Dados alterados com sucesso"
+    }, 200
     
 def get_child_progress(id):
     child_oid = convert_id(id)
@@ -42,6 +132,7 @@ def get_child_progress(id):
     progress = mongo.db.progress.find_one({"child": child_oid})
 
     if not progress:
+        print("deu 404 pq nao encontrou")
         return {"error": "Não há progresso registrado para esta criança"}, 404
 
     return progress, 200
