@@ -106,7 +106,14 @@ def insert_phase_definitions():
             "code": "W1_M1_PHASE_4",
             "moduleCode": "W1_MODULE_1", 
             "name": "Fase 4", 
-            "order": 3, 
+            "order": 4, 
+            "type": "review"
+        },
+        {
+            "code": "W1_M1_PHASE_5",
+            "moduleCode": "W1_MODULE_1", 
+            "name": "Fase 5", 
+            "order": 5, 
             "type": "boss"
         },
     ]
