@@ -78,16 +78,69 @@ def edit_child_progress(id, new_data):
                 return {
                     "error": "Coins insuficientes"
                 }, 400
+       
+    # -----------------------------------
+    # VALIDAÇÃO DE STELLAR POINTS
+    # -----------------------------------
+                
+    if "stellarPoints" in inc_data:
+        stellar_change = inc_data["stellarPoints"]
+
+        if stellar_change < 0:
+            stellar_cost = abs(stellar_change)
+
+            if progress.get("stellarPoints", 0) < stellar_cost:
+                return {
+                    "error": "Stellar Points insuficientes"
+                }, 400
 
     # -----------------------------------
     # CAMPOS NORMAIS
     # -----------------------------------
 
+    allowed_set_fields = [
+        "selectedCharacter"
+    ]
+    
     set_data = {}
 
     for key, value in new_data.items():
-        if key not in incrementable_fields:
+        if key in allowed_set_fields:
             set_data[key] = value
+            
+    upgrade_character = new_data.get("upgradeCharacter")
+
+    if upgrade_character:
+
+        character = next(
+            (
+                char
+                for char in progress.get("characters", [])
+                if char.get("characterCode") == upgrade_character
+            ),
+            None
+        )
+
+        if not character:
+            return {
+                "error": "Personagem não encontrado"
+            }, 404
+
+        current_level = character.get("level", 1)
+
+        current_points = character.get(
+            "characterPoints",
+            0
+        )
+
+        required_points = int(
+            80 + 45 * ((current_level - 1) ** 1.4)
+        )
+
+        if current_points < required_points:
+            return {
+                "error": "Progresso insuficiente"
+            }, 400
 
     # -----------------------------------
     # MONTA UPDATE
@@ -114,6 +167,23 @@ def edit_child_progress(id, new_data):
         {"child": child_oid},
         update_query
     )
+    
+    if upgrade_character:
+
+        mongo.db.progress.update_one(
+            {
+                "child": child_oid,
+                "characters.characterCode": upgrade_character
+            },
+            {
+                "$inc": {
+                    "characters.$.level": 1
+                },
+                "$set": {
+                    "characters.$.characterPoints": 0
+                }
+            }
+        )
 
     if result.matched_count == 0:
         return {

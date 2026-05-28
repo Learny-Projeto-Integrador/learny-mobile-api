@@ -151,6 +151,57 @@ def update_progress(child_id, data, increment_streak=False):
             "$inc": inc_data
         }
     )
+    
+    # -----------------------------------
+    # ATUALIZA PONTOS DO PERSONAGEM SELECIONADO
+    # -----------------------------------
+
+    selected_character = progress.get("selectedCharacter")
+
+    if selected_character:
+
+        character = next(
+            (
+                char
+                for char in progress.get("characters", [])
+                if char.get("characterCode") == selected_character
+            ),
+            None
+        )
+
+        if character:
+
+            current_level = character.get("level", 1)
+
+            current_points = character.get(
+                "characterPoints",
+                0
+            )
+
+            earned_points = data.get("points", 0)
+
+            # Fórmula do upgrade
+            max_points = int(
+                80 + 45 * ((current_level - 1) ** 1.4)
+            )
+
+            updated_points = current_points + earned_points
+
+            # trava no máximo do nível
+            if updated_points > max_points:
+                updated_points = max_points
+
+            mongo.db.progress.update_one(
+                {
+                    "child": child_id,
+                    "characters.characterCode": selected_character
+                },
+                {
+                    "$set": {
+                        "characters.$.characterPoints": updated_points
+                    }
+                }
+            )
 
     progress = mongo.db.progress.find_one({"child": child_id})
 
