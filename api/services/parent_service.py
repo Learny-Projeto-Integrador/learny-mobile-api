@@ -29,7 +29,7 @@ def register_parent(parent: parent.Parent):
 
     return {'message': 'Usuário cadastrado com sucesso!'}, 201
     
-def edit_parent(id, new_data: parent.Parent):
+def edit_parent(id, new_data):
     parent_oid = convert_id(id)
     if not parent_oid:
         return {'error': 'ID inválido'}, 400
@@ -141,6 +141,32 @@ def get_selected_child(id):
     }
 
     return merged_data, 200
+
+def edit_selected_child(id, data):
+    parent_oid = convert_id(id)
+
+    if not parent_oid:
+        return {'error': 'ID inválido'}, 400
+
+    parent = mongo.db.parents.find_one({
+        '_id': parent_oid
+    })
+
+    if not parent:
+        return {'error': 'Responsável não encontrado'}, 404
+    
+    if data.get("selectedChild"):
+        child_oid = convert_id(data.get("selectedChild"))
+    
+    result = mongo.db.parents.update_one(
+        {"_id": parent_oid},
+        {"$set": {"selectedChild": child_oid}}
+    )
+
+    if result.matched_count > 0:
+        return {'message': 'Filho selecionado atualizado com sucesso'}, 200
+    else:
+        return {'error': 'Erro ao atualizar filho selecionado'}, 404
     
 def create_initial_progress(child_id):
     worlds_def = list(mongo.db.world_definitions.find().sort("order", 1))
@@ -194,23 +220,31 @@ def register_child(parent_id, child):
 
     return {'message': 'Filho criado com sucesso'}, 201
     
-def edit_child(id, new_data: child.Child):
+def edit_child(id, new_data):
     child_oid = convert_id(id)
     if not child_oid:
         return {'error': 'ID inválido'}, 400
     
-    if new_data.password:
-        new_data.password = generate_password_hash(new_data.password)
+    if "password" in new_data:
+        if new_data["password"]:
+            new_data["password"] = generate_password_hash(new_data["password"])
+        else:
+            del new_data["password"]
 
     result = mongo.db.children.update_one(
         {'_id': child_oid},
-        {'$set': new_data.to_dict()}
+        {'$set': new_data}
     )
 
-    if result.modified_count > 0:
-        return {'message': 'Filho alterado com sucesso'}, 200
-    else:
-        return {'error': 'Erro ao editar o filho'}, 500
+    if result.matched_count == 0:
+        return {'error': 'Criança não encontrada'}, 404
+
+    if result.modified_count == 0:
+        return {
+            'message': 'Nenhuma alteração realizada — os dados enviados são iguais aos existentes.'
+        }, 200
+
+    return {'message': 'Dados alterados com sucesso'}, 200
     
 def delete_child(child_id, parent_id):
     child_oid = convert_id(child_id)
@@ -218,6 +252,10 @@ def delete_child(child_id, parent_id):
 
     if not child_oid or not parent_oid:
         return {'error': 'ID inválido'}, 400
+
+    parent = mongo.db.parents.find_one({
+        "_id": parent_oid,
+    })
 
     child = mongo.db.children.find_one({
         "_id": child_oid,
@@ -227,9 +265,17 @@ def delete_child(child_id, parent_id):
     if not child:
         return {"error": "Não encontrado"}, 404
 
-    mongo.db.children.delete_one({"_id": child_oid})
+    if parent and parent.get("selectedChild") == child_oid:
+        mongo.db.parents.update_one(
+            {"_id": parent_oid},
+            {"$set": {"selectedChild": None}}
+        )
 
-    return {"message": "Filho removido"}, 200
+    mongo.db.children.delete_one({
+        "_id": child_oid
+    })
+
+    return {"message": "Filho removido"}, 204
 
 def get_child_activity(id):
     child_oid = convert_id(id)
@@ -242,19 +288,6 @@ def get_child_activity(id):
         return {"error": "Não há progresso registrado para esta criança"}, 404
 
     return activity, 200
-
-def edit_selected_children(parent_id, child_id):
-    parent_oid = convert_id(parent_id)
-    child_oid = convert_id(child_id)
-
-    mongo.db.parents.update_one(
-        {"_id": parent_oid},
-        {"$set": {"selectedChild": child_oid}}
-    )
-
-    child = mongo.db.children.find_one({"_id": child_oid})
-
-    return mongo_to_dict(child), 200
 
 def send_notification(child_id, parent_id, data):
     child_oid = convert_id(child_id)

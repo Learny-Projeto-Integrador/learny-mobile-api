@@ -50,11 +50,7 @@ class ParentChildResources(Resource):
 
     @jwt_required()
     def put(self, id):
-        data, errors = handle_schema(child_schema, request.json)
-        if errors:
-            return {"error": errors}, 400
-
-        result, status = parent_service.edit_child(id, data)
+        result, status = parent_service.edit_child(id, request.json)
         return make_response(jsonify(result), status)
 
     @jwt_required()
@@ -86,6 +82,12 @@ class SelectedChildResources(Resource):
     def get(self):
         parent_id = get_jwt_identity()
         result, status = parent_service.get_selected_child(parent_id)
+        return make_response(jsonify(result), status)
+    
+    @jwt_required()
+    def put(self):
+        parent_id = get_jwt_identity()
+        result, status = parent_service.edit_selected_child(parent_id, request.json)
         return make_response(jsonify(result), status)
     
 class ParentChildActivityResources(Resource):
