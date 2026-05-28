@@ -34,15 +34,21 @@ def edit_parent(id, new_data):
     if not parent_oid:
         return {'error': 'ID inválido'}, 400
 
-    if new_data.password:
-        new_data.password = generate_password_hash(new_data.password)
+    if "password" in new_data:
+        if new_data["password"]:
+            new_data["password"] = generate_password_hash(new_data["password"])
 
-    result = mongo.db.parents.update_one({'_id': parent_oid}, {'$set': new_data.to_dict()})
+    result = mongo.db.parents.update_one({'_id': parent_oid}, {'$set': new_data})
 
-    if result.matched_count > 0:
-        return {'message': 'Dados atualizados com sucesso'}, 200
-    else:
-        return {'error': 'Responsável não encontrado'}, 404
+    if result.matched_count == 0:
+        return {'error': 'Usuário não encontrado'}, 404
+
+    if result.modified_count == 0:
+        return {
+            'message': 'Nenhuma alteração realizada — os dados enviados são iguais aos existentes.'
+        }, 200
+
+    return {'message': 'Dados alterados com sucesso'}, 200
 
 def delete_parent(id):
     parent_oid = convert_id(id)

@@ -29,11 +29,7 @@ class ParentResources(Resource):
     def put(self):
         parent_id = get_jwt_identity()
 
-        data, errors = handle_schema(parent_schema, request.json)
-        if errors:
-            return {"error": errors}, 400
-
-        result, status = parent_service.edit_parent(parent_id, data)
+        result, status = parent_service.edit_parent(parent_id, request.json)
         return make_response(jsonify(result), status)
 
     @jwt_required()
